@@ -1,0 +1,14 @@
+/**
+ * Eifelhoster Buttons Pro – Frontend CSS
+ *
+ * Contains only the structural/transitional styles that cannot be inlined.
+ * All visual styles (colours, fonts, borders, etc.) are generated inline by
+ * the shortcode renderer.
+ */
+
+.ebp-button {
+	box-sizing: border-box;
+}
+
+/* Smooth hover transitions are already set inline by the shortcode renderer
+   via the `transition` property, so no additional rules are required here. */
