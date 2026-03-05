@@ -1,0 +1,343 @@
+/**
+ * Eifelhoster Buttons Pro – Admin & Dialog CSS
+ */
+
+/* ============================================================
+   Admin Settings Page
+   ============================================================ */
+
+.ebp-admin-wrap h1 {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+.ebp-title-icon {
+	font-size: 28px;
+	color: #2271b1;
+}
+.ebp-subtitle {
+	color: #646970;
+	margin-bottom: 20px;
+}
+
+/* Tabs */
+.ebp-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin-bottom: 0;
+	border-bottom: 2px solid #2271b1;
+}
+.ebp-tab-btn {
+	background: #f0f0f1;
+	border: 1px solid #c3c4c7;
+	border-bottom: none;
+	padding: 8px 16px;
+	cursor: pointer;
+	font-size: 13px;
+	border-radius: 4px 4px 0 0;
+	color: #2c3338;
+}
+.ebp-tab-btn:hover {
+	background: #dcdcde;
+}
+.ebp-tab-btn.active {
+	background: #fff;
+	border-color: #2271b1;
+	border-bottom-color: #fff;
+	color: #2271b1;
+	font-weight: 600;
+	margin-bottom: -2px;
+}
+.ebp-tab-panel {
+	display: none;
+	background: #fff;
+	padding: 20px;
+	border: 1px solid #c3c4c7;
+	border-top: none;
+	border-radius: 0 0 4px 4px;
+}
+.ebp-tab-panel.active {
+	display: block;
+}
+
+/* Form table adjustments */
+.ebp-form-table th {
+	width: 220px;
+	font-weight: 600;
+	vertical-align: top;
+	padding-top: 14px;
+}
+
+/* Sub-table (shadow fields) */
+.ebp-sub-table td {
+	padding: 4px 8px 4px 0;
+	vertical-align: middle;
+}
+
+/* Admin Preview box */
+.ebp-admin-preview-box {
+	margin-top: 24px;
+	padding: 20px;
+	background: #f9f9f9;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+}
+.ebp-admin-preview-box h2 {
+	margin-top: 0;
+	font-size: 14px;
+	color: #646970;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+}
+#ebp-admin-preview {
+	padding: 16px;
+	background: #e8e8e8;
+	border-radius: 4px;
+	text-align: center;
+}
+
+/* Footer */
+.ebp-admin-footer {
+	margin-top: 20px;
+	padding-top: 10px;
+	border-top: 1px solid #dcdcde;
+	color: #646970;
+	font-size: 13px;
+}
+
+/* ============================================================
+   Dashicon picker (shared by admin page & dialog)
+   ============================================================ */
+
+.ebp-dashicon-picker-wrap {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+.ebp-dashicon-grid {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	max-height: 200px;
+	overflow-y: auto;
+	border: 1px solid #dcdcde;
+	padding: 8px;
+	background: #fafafa;
+	border-radius: 4px;
+}
+.ebp-icon-item {
+	width: 30px;
+	height: 30px;
+	font-size: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	border-radius: 3px;
+	color: #3c434a;
+	flex-shrink: 0;
+}
+.ebp-icon-item:hover {
+	background: #2271b1;
+	color: #fff;
+}
+.ebp-icon-item.selected {
+	background: #2271b1;
+	color: #fff;
+	outline: 2px solid #0a4b78;
+}
+.ebp-dashicon-preview {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	min-height: 32px;
+	padding: 4px 8px;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	color: #2c3338;
+	font-size: 13px;
+}
+
+/* ============================================================
+   Dialog / Modal
+   ============================================================ */
+
+#ebp-modal-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .6);
+	z-index: 100000;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#ebp-modal {
+	background: #fff;
+	border-radius: 6px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, .35);
+	width: 680px;
+	max-width: 95vw;
+	max-height: 90vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+#ebp-modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 18px;
+	background: #2271b1;
+	color: #fff;
+	flex-shrink: 0;
+}
+#ebp-modal-title {
+	font-size: 15px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+}
+#ebp-modal-close {
+	background: none;
+	border: none;
+	color: #fff;
+	cursor: pointer;
+	padding: 0;
+	line-height: 1;
+	opacity: .8;
+}
+#ebp-modal-close:hover {
+	opacity: 1;
+}
+#ebp-modal-close .dashicons {
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+}
+
+/* Dialog tabs */
+#ebp-modal-tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px;
+	padding: 8px 18px 0;
+	background: #f0f0f1;
+	border-bottom: 2px solid #2271b1;
+	flex-shrink: 0;
+}
+.ebp-modal-tab {
+	background: #e0e0e2;
+	border: 1px solid #c3c4c7;
+	border-bottom: none;
+	padding: 6px 12px;
+	cursor: pointer;
+	font-size: 12px;
+	border-radius: 4px 4px 0 0;
+	color: #2c3338;
+}
+.ebp-modal-tab:hover {
+	background: #dcdcde;
+}
+.ebp-modal-tab.active {
+	background: #fff;
+	border-color: #2271b1;
+	border-bottom-color: #fff;
+	color: #2271b1;
+	font-weight: 600;
+	margin-bottom: -2px;
+}
+
+#ebp-modal-body {
+	overflow-y: auto;
+	flex: 1;
+	padding: 0 18px;
+}
+
+/* Dialog panels */
+.ebp-modal-panel {
+	display: none;
+	padding: 16px 0;
+}
+.ebp-modal-panel.active {
+	display: block;
+}
+
+/* Dialog form table */
+.ebp-dialog-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+.ebp-dialog-table th,
+.ebp-dialog-table td {
+	padding: 7px 8px;
+	text-align: left;
+	vertical-align: top;
+}
+.ebp-dialog-table th {
+	width: 180px;
+	font-size: 12px;
+	font-weight: 600;
+	color: #50575e;
+	vertical-align: middle;
+	white-space: nowrap;
+}
+.ebp-full-width {
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* Dialog preview */
+#ebp-dialog-preview-wrap {
+	padding: 12px 0;
+	border-top: 1px solid #dcdcde;
+	margin-top: 8px;
+}
+.ebp-preview-label {
+	font-size: 11px;
+	font-weight: 600;
+	text-transform: uppercase;
+	color: #646970;
+	letter-spacing: .05em;
+	display: block;
+	margin-bottom: 8px;
+}
+#ebp-dialog-preview {
+	background: #f0f0f1;
+	padding: 16px;
+	border-radius: 4px;
+	text-align: center;
+	min-height: 60px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.ebp-dialog-preview-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* Dialog footer */
+#ebp-modal-footer {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 12px 18px;
+	background: #f6f7f7;
+	border-top: 1px solid #dcdcde;
+	flex-shrink: 0;
+}
+.ebp-footer-credit {
+	margin-left: auto;
+	font-size: 11px;
+	color: #a7aaad;
+}
+
+/* Colour picker: make dialog work with WP colour picker popover */
+.ebp-dialog-color + .wp-color-result {
+	margin: 0;
+}
