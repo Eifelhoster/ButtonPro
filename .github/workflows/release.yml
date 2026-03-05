@@ -1,0 +1,72 @@
+name: Build & Release Plugin ZIP
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version label for the ZIP (e.g. 3.1.0). Leave empty to use the commit SHA.'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    name: Package plugin ZIP
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # required to create GitHub Releases and upload assets
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Determine version string
+        id: version
+        run: |
+          if [[ "${{ github.event_name }}" == "push" && "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION="${{ github.ref_name }}"
+          elif [[ -n "${{ github.event.inputs.version }}" ]]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${{ github.sha }}"
+          fi
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "zip_name=eifelhoster-buttons-pro-${VERSION}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Build plugin ZIP
+        run: |
+          # Create a staging directory with the plugin folder name at the root.
+          # WordPress requires the ZIP to contain a single folder whose name matches
+          # the plugin slug so it installs into wp-content/plugins/eifelhoster-buttons-pro/.
+          STAGING="eifelhoster-buttons-pro"
+          mkdir -p "$STAGING"
+
+          # Copy all plugin files — exclude development / repository-only files.
+          rsync -a \
+            --exclude='.git' \
+            --exclude='.gitignore' \
+            --exclude='.github' \
+            --exclude='README.md' \
+            . "$STAGING/"
+
+          # Create the ZIP.
+          zip -r "${{ steps.version.outputs.zip_name }}" "$STAGING/"
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.version.outputs.zip_name }}
+          path: ${{ steps.version.outputs.zip_name }}
+          retention-days: 30
+
+      # Only create a GitHub Release when the workflow was triggered by a version tag.
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Eifelhoster Buttons Pro ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          generate_release_notes: true
+          files: ${{ steps.version.outputs.zip_name }}
