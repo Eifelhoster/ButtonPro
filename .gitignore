@@ -1,0 +1,18 @@
+# Eifelhoster Buttons Pro – .gitignore
+
+# OS artefacts
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# WordPress artefacts that should not be in the plugin repo
+/vendor/
+/node_modules/
+
+# ZIP builds (generated separately)
+*.zip
