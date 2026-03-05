@@ -10,13 +10,34 @@
 	var currentEditor = null;
 	var mediaFrameIcon  = null;
 	var mediaFrameLink  = null;
+	var isEditing = false;
 
 	// -------------------------------------------------------------------------
 	// Public API
 	// -------------------------------------------------------------------------
-	window.ebpOpenDialog = function ( editor ) {
+	/**
+	 * Open the button dialog.
+	 *
+	 * @param {Object}      editor  TinyMCE editor instance.
+	 * @param {Object|null} attrs   When provided the dialog opens in "edit" mode
+	 *                              pre-filled with the existing shortcode values.
+	 *                              Pass null / omit for "insert" mode.
+	 */
+	window.ebpOpenDialog = function ( editor, attrs ) {
 		currentEditor = editor;
-		ebpResetForm();
+		if ( attrs ) {
+			isEditing = true;
+			ebpPopulateForm( attrs );
+			$( '#ebp-modal-title-text' ).text( ebpData.i18n.titleEdit );
+			$( '#ebp-btn-insert .ebp-btn-label' ).text( ebpData.i18n.update );
+			$( '#ebp-modal-overlay' ).attr( 'aria-label', ebpData.i18n.titleEdit );
+		} else {
+			isEditing = false;
+			ebpResetForm();
+			$( '#ebp-modal-title-text' ).text( ebpData.i18n.title );
+			$( '#ebp-btn-insert .ebp-btn-label' ).text( ebpData.i18n.insert );
+			$( '#ebp-modal-overlay' ).attr( 'aria-label', ebpData.i18n.title );
+		}
 		$( '#ebp-modal-overlay' ).fadeIn( 150 );
 		$( '#ebp-f-text' ).trigger( 'focus' );
 	};
@@ -236,6 +257,104 @@
 	}
 
 	// -------------------------------------------------------------------------
+	// Populate form with an existing shortcode's attribute values
+	// -------------------------------------------------------------------------
+	function ebpPopulateForm( attrs ) {
+		var d = ebpData.defaults;
+
+		// Helper: return attrs value when present, otherwise fall back to default.
+		function val( key, def ) {
+			return ( attrs[ key ] !== undefined && attrs[ key ] !== '' ) ? attrs[ key ] : def;
+		}
+
+		// Text & Font tab.
+		$( '#ebp-f-text' ).val( val( 'text', 'Button' ) );
+		$( '#ebp-f-font-family' ).val( val( 'font_family', d.font_family ) );
+		$( '#ebp-f-font-size' ).val( val( 'font_size', d.font_size ) );
+		$( '#ebp-f-font-bold' ).prop( 'checked', val( 'font_bold', d.font_bold ) === '1' );
+		$( '#ebp-f-font-italic' ).prop( 'checked', val( 'font_italic', d.font_italic ) === '1' );
+		$( '#ebp-f-padding-v' ).val( val( 'padding_v', d.padding_v ) );
+		$( '#ebp-f-padding-h' ).val( val( 'padding_h', d.padding_h ) );
+
+		// Colors tab.
+		ebpSetColor( '#ebp-f-bg-color',         val( 'bg_color',         d.bg_color ) );
+		ebpSetColor( '#ebp-f-bg-hover-color',   val( 'bg_hover_color',   d.bg_hover_color ) );
+		ebpSetColor( '#ebp-f-text-color',       val( 'text_color',       d.text_color ) );
+		ebpSetColor( '#ebp-f-text-hover-color', val( 'text_hover_color', d.text_hover_color ) );
+		var hoverGrow = val( 'hover_grow', d.hover_grow );
+		$( '#ebp-f-hover-grow' ).val( hoverGrow );
+		$( '#ebp-f-hover-grow-range' ).val( hoverGrow );
+
+		// Icon tab.
+		var iconType     = val( 'icon_type', d.icon_type );
+		var icon         = val( 'icon', d.icon );
+		var iconMediaUrl = val( 'icon_media_url', d.icon_media_url );
+		$( 'input[name="ebp-icon-type"][value="' + iconType + '"]' ).prop( 'checked', true );
+		$( '#ebp-dlg-row-dashicon' ).toggle( iconType === 'dashicon' );
+		$( '#ebp-dlg-row-media-icon' ).toggle( iconType === 'media' );
+		$( '#ebp-f-icon' ).val( icon );
+		$( '#ebp-f-icon-media-url' ).val( iconMediaUrl );
+		$( '#ebp-f-icon-size' ).val( val( 'icon_size', d.icon_size ) );
+		$( '#ebp-f-icon-spacing' ).val( val( 'icon_spacing', d.icon_spacing ) );
+		$( 'input[name="ebp-icon-pos"][value="' + val( 'icon_position', d.icon_position ) + '"]' ).prop( 'checked', true );
+
+		if ( iconType === 'dashicon' && icon ) {
+			$( '#ebp-dlg-icon-preview' ).html(
+				'<span class="dashicons dashicons-' + ebpEscHtml( icon ) + '" style="font-size:24px;width:24px;height:24px"></span>' +
+				' <span style="font-size:11px;color:#666">' + ebpEscHtml( icon ) + '</span>'
+			);
+			// Highlight the icon in the grid.
+			$( '#ebp-dlg-icon-grid .ebp-icon-item' ).each( function () {
+				$( this ).toggleClass( 'selected', $( this ).data( 'icon' ) === icon );
+			} );
+		} else {
+			$( '#ebp-dlg-icon-preview' ).html( '' );
+		}
+
+		if ( iconType === 'media' && iconMediaUrl ) {
+			$( '#ebp-dlg-icon-media-preview' ).html(
+				'<img src="' + ebpEscHtml( iconMediaUrl ) + '" style="max-height:48px;margin-top:4px" />'
+			);
+		} else {
+			$( '#ebp-dlg-icon-media-preview' ).html( '' );
+		}
+
+		// Border & Shadow tab.
+		$( '#ebp-f-border-width' ).val( val( 'border_width', d.border_width ) );
+		$( '#ebp-f-border-style' ).val( val( 'border_style', d.border_style ) );
+		ebpSetColor( '#ebp-f-border-color', val( 'border_color', d.border_color ) );
+		$( '#ebp-f-border-radius' ).val( val( 'border_radius', d.border_radius ) );
+		var shadowEnabled = val( 'shadow_enabled', d.shadow_enabled ) === '1';
+		$( '#ebp-f-shadow-enabled' ).prop( 'checked', shadowEnabled );
+		$( '#ebp-dlg-shadow-fields' ).toggle( shadowEnabled );
+		$( '#ebp-f-shadow-x' ).val( val( 'shadow_x', d.shadow_x ) );
+		$( '#ebp-f-shadow-y' ).val( val( 'shadow_y', d.shadow_y ) );
+		$( '#ebp-f-shadow-blur' ).val( val( 'shadow_blur', d.shadow_blur ) );
+		$( '#ebp-f-shadow-spread' ).val( val( 'shadow_spread', d.shadow_spread ) );
+		$( '#ebp-f-shadow-color' ).val( val( 'shadow_color', d.shadow_color ) );
+
+		// Link tab.
+		var linkType = val( 'link_type', d.link_type );
+		$( 'input[name="ebp-link-type"][value="' + linkType + '"]' ).prop( 'checked', true );
+		ebpToggleLinkFields( linkType );
+		$( '#ebp-f-url' ).val( val( 'url', d.url ) );
+		$( '#ebp-f-email' ).val( val( 'email', d.email ) );
+		$( '#ebp-f-email-subject' ).val( val( 'email_subject', d.email_subject ) );
+		$( '#ebp-f-email-body' ).val( val( 'email_body', d.email_body ) );
+		$( '#ebp-f-media-url' ).val( val( 'media_url', d.media_url ) );
+		$( '#ebp-dlg-media-preview' ).html( '' );
+		$( 'input[name="ebp-target"][value="' + val( 'target', d.target ) + '"]' ).prop( 'checked', true );
+
+		// Reset to first tab.
+		$( '.ebp-modal-tab' ).removeClass( 'active' );
+		$( '.ebp-modal-tab[data-tab="text"]' ).addClass( 'active' );
+		$( '.ebp-modal-panel' ).removeClass( 'active' );
+		$( '#ebp-panel-text' ).addClass( 'active' );
+
+		ebpUpdatePreview();
+	}
+
+	// -------------------------------------------------------------------------
 	// Helper: set WP colour picker value
 	// -------------------------------------------------------------------------
 	function ebpSetColor( selector, value ) {
@@ -261,10 +380,11 @@
 	function ebpCloseDialog() {
 		$( '#ebp-modal-overlay' ).fadeOut( 150 );
 		currentEditor = null;
+		isEditing = false;
 	}
 
 	// -------------------------------------------------------------------------
-	// Build shortcode and insert into editor
+	// Build shortcode and insert (or replace) in editor
 	// -------------------------------------------------------------------------
 	function ebpInsertShortcode() {
 		if ( ! currentEditor ) {
@@ -276,7 +396,13 @@
 			sc += ' ' + k + '="' + v.replace( /"/g, '&quot;' ) + '"';
 		} );
 		sc += ']';
-		currentEditor.insertContent( sc );
+		if ( isEditing ) {
+			// The full shortcode was already selected by ebpGetShortcodeAtCursor();
+			// replace it in-place.
+			currentEditor.selection.setContent( sc );
+		} else {
+			currentEditor.insertContent( sc );
+		}
 		ebpCloseDialog();
 	}
 

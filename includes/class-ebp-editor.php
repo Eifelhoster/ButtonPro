@@ -51,7 +51,9 @@ class EBP_Editor {
 			'dashicons' => ebp_get_dashicons(),
 			'i18n'      => array(
 				'title'         => __( 'Eifelhoster Button einfügen', 'eifelhoster-buttons-pro' ),
+				'titleEdit'     => __( 'Eifelhoster Button bearbeiten', 'eifelhoster-buttons-pro' ),
 				'insert'        => __( 'Button einfügen', 'eifelhoster-buttons-pro' ),
+				'update'        => __( 'Button aktualisieren', 'eifelhoster-buttons-pro' ),
 				'cancel'        => __( 'Abbrechen', 'eifelhoster-buttons-pro' ),
 				'selectFile'    => __( 'Datei auswählen', 'eifelhoster-buttons-pro' ),
 				'selectMedia'   => __( 'Mediendatei auswählen', 'eifelhoster-buttons-pro' ),
@@ -97,7 +99,7 @@ class EBP_Editor {
 				<div id="ebp-modal-header">
 					<span id="ebp-modal-title">
 						<span class="dashicons dashicons-button" style="margin-right:6px"></span>
-						<?php esc_html_e( 'Eifelhoster Button einfügen', 'eifelhoster-buttons-pro' ); ?>
+						<span id="ebp-modal-title-text"><?php esc_html_e( 'Eifelhoster Button einfügen', 'eifelhoster-buttons-pro' ); ?></span>
 					</span>
 					<button type="button" id="ebp-modal-close" aria-label="<?php esc_attr_e( 'Schließen', 'eifelhoster-buttons-pro' ); ?>">
 						<span class="dashicons dashicons-no-alt"></span>
@@ -396,7 +398,7 @@ class EBP_Editor {
 				<div id="ebp-modal-footer">
 					<button type="button" id="ebp-btn-insert" class="button button-primary">
 						<span class="dashicons dashicons-insert" style="vertical-align:middle;margin-right:4px"></span>
-						<?php esc_html_e( 'Button einfügen', 'eifelhoster-buttons-pro' ); ?>
+						<span class="ebp-btn-label"><?php esc_html_e( 'Button einfügen', 'eifelhoster-buttons-pro' ); ?></span>
 					</button>
 					<button type="button" id="ebp-btn-cancel" class="button">
 						<?php esc_html_e( 'Abbrechen', 'eifelhoster-buttons-pro' ); ?>
