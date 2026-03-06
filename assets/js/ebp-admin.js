@@ -153,6 +153,7 @@
 		var textColor   = $( 'input[name$="[text_color]"]' ).val()   || '#ffffff';
 		var paddingV    = parseInt( $( 'input[name$="[padding_v]"]' ).val(), 10 )    || 10;
 		var paddingH    = parseInt( $( 'input[name$="[padding_h]"]' ).val(), 10 )    || 20;
+		var buttonWidth = parseInt( $( 'input[name$="[button_width]"]' ).val(), 10 ) || 0;
 		var borderW     = parseInt( $( 'input[name$="[border_width]"]' ).val(), 10 ) || 0;
 		var borderStyle = $( 'select[name$="[border_style]"]' ).val() || 'solid';
 		var borderColor = $( 'input[name$="[border_color]"]' ).val() || '#000000';
@@ -162,7 +163,7 @@
 		var shadowY     = parseInt( $( 'input[name$="[shadow_y]"]' ).val(), 10 )     || 2;
 		var shadowBlur  = parseInt( $( 'input[name$="[shadow_blur]"]' ).val(), 10 )  || 4;
 		var shadowSprd  = parseInt( $( 'input[name$="[shadow_spread]"]' ).val(), 10 )|| 0;
-		var shadowColor = $( 'input[name$="[shadow_color]"]' ).val() || 'rgba(0,0,0,0.3)';
+		var shadowColor = $( 'input[name$="[shadow_color]"]' ).val() || '#aaaaaa';
 		var iconType    = $( 'input[name$="[icon_type]"]:checked' ).val()   || 'none';
 		var iconSpacing = parseInt( $( 'input[name$="[icon_spacing]"]' ).val(), 10 ) || 8;
 
@@ -179,6 +180,7 @@
 			'background-color': bgColor,
 			'color'           : textColor,
 			'padding'         : paddingV + 'px ' + paddingH + 'px',
+			'width'           : buttonWidth > 0 ? buttonWidth + 'px' : '',
 			'border-width'    : borderW + 'px',
 			'border-style'    : borderStyle,
 			'border-color'    : borderColor,

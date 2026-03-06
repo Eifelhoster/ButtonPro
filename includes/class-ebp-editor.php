@@ -161,6 +161,12 @@ class EBP_Editor {
 									<input type="number" id="ebp-f-padding-h" min="0" max="200" style="width:70px" />
 								</td>
 							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Buttonbreite (px)', 'eifelhoster-buttons-pro' ); ?></th>
+								<td>
+									<input type="number" id="ebp-f-button-width" min="0" max="2000" style="width:80px" />
+								</td>
+							</tr>
 						</table>
 					</div>
 
@@ -308,8 +314,7 @@ class EBP_Editor {
 										<tr>
 											<td><?php esc_html_e( 'Farbe:', 'eifelhoster-buttons-pro' ); ?></td>
 											<td colspan="3">
-												<input type="text" id="ebp-f-shadow-color" placeholder="rgba(0,0,0,0.3)"
-													style="width:200px" />
+												<input type="text" id="ebp-f-shadow-color" class="ebp-dialog-color" />
 											</td>
 										</tr>
 									</table>

@@ -73,6 +73,7 @@ class EBP_Admin {
 			'shadow_spread', 'shadow_color', 'url', 'email',
 			'email_subject', 'media_url', 'bg_color', 'bg_hover_color',
 			'text_color', 'text_hover_color', 'hover_grow', 'padding_v', 'padding_h',
+			'button_width',
 		);
 		foreach ( $text_fields as $field ) {
 			$clean[ $field ] = isset( $input[ $field ] ) ? sanitize_text_field( $input[ $field ] ) : '';
@@ -182,6 +183,13 @@ class EBP_Admin {
 								<?php esc_html_e( 'Links/Rechts:', 'eifelhoster-buttons-pro' ); ?>
 								<input type="number" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[padding_h]"
 									value="<?php echo esc_attr( $d['padding_h'] ); ?>" min="0" max="200" class="small-text" />
+							</td>
+						</tr>
+						<tr>
+							<th><?php esc_html_e( 'Buttonbreite (px)', 'eifelhoster-buttons-pro' ); ?></th>
+							<td>
+								<input type="number" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[button_width]"
+									value="<?php echo esc_attr( $d['button_width'] ); ?>" min="0" max="2000" class="small-text" />
 							</td>
 						</tr>
 					</table>
@@ -408,7 +416,7 @@ class EBP_Admin {
 										<td colspan="3">
 											<input type="text" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[shadow_color]"
 												value="<?php echo esc_attr( $d['shadow_color'] ); ?>"
-												class="regular-text" placeholder="rgba(0,0,0,0.3)" />
+												class="ebp-color-picker" />
 										</td>
 									</tr>
 								</table>

@@ -165,6 +165,7 @@
 		$( '#ebp-f-font-italic' ).prop( 'checked', d.font_italic === '1' );
 		$( '#ebp-f-padding-v' ).val( d.padding_v );
 		$( '#ebp-f-padding-h' ).val( d.padding_h );
+		$( '#ebp-f-button-width' ).val( d.button_width );
 
 		// Colors tab.
 		ebpSetColor( '#ebp-f-bg-color',         d.bg_color );
@@ -213,7 +214,7 @@
 		$( '#ebp-f-shadow-y' ).val( d.shadow_y );
 		$( '#ebp-f-shadow-blur' ).val( d.shadow_blur );
 		$( '#ebp-f-shadow-spread' ).val( d.shadow_spread );
-		$( '#ebp-f-shadow-color' ).val( d.shadow_color );
+		ebpSetColor( '#ebp-f-shadow-color', d.shadow_color );
 
 		// Link tab.
 		$( 'input[name="ebp-link-type"][value="' + d.link_type + '"]' ).prop( 'checked', true );
@@ -302,6 +303,7 @@
 			hover_grow       : $( '#ebp-f-hover-grow' ).val(),
 			padding_v        : $( '#ebp-f-padding-v' ).val(),
 			padding_h        : $( '#ebp-f-padding-h' ).val(),
+			button_width     : $( '#ebp-f-button-width' ).val(),
 			icon_type        : iconType,
 			icon             : $( '#ebp-f-icon' ).val(),
 			icon_media_url   : $( '#ebp-f-icon-media-url' ).val(),
@@ -317,7 +319,7 @@
 			shadow_y         : $( '#ebp-f-shadow-y' ).val(),
 			shadow_blur      : $( '#ebp-f-shadow-blur' ).val(),
 			shadow_spread    : $( '#ebp-f-shadow-spread' ).val(),
-			shadow_color     : $( '#ebp-f-shadow-color' ).val(),
+			shadow_color     : ebpGetColor( '#ebp-f-shadow-color' ),
 			link_type        : linkType,
 			url              : $( '#ebp-f-url' ).val(),
 			email            : $( '#ebp-f-email' ).val(),
@@ -363,6 +365,8 @@
 			'color'           : attrs.text_color,
 			'padding'         : ( parseInt( attrs.padding_v, 10 ) || 10 ) + 'px ' +
 			                    ( parseInt( attrs.padding_h, 10 ) || 20 ) + 'px',
+			'width'           : parseInt( attrs.button_width, 10 ) > 0
+			                    ? parseInt( attrs.button_width, 10 ) + 'px' : '',
 			'border-width'    : ( parseInt( attrs.border_width, 10 ) || 0 ) + 'px',
 			'border-style'    : attrs.border_style || 'solid',
 			'border-color'    : attrs.border_color,
@@ -376,7 +380,7 @@
 				parseInt( attrs.shadow_y,      10 ) + 'px',
 				parseInt( attrs.shadow_blur,   10 ) + 'px',
 				parseInt( attrs.shadow_spread, 10 ) + 'px',
-				attrs.shadow_color || 'rgba(0,0,0,0.3)',
+				attrs.shadow_color || '#aaaaaa',
 			].join( ' ' );
 		} else {
 			css['box-shadow'] = 'none';
