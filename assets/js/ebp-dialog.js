@@ -7,16 +7,28 @@
 (function ( $ ) {
 	'use strict';
 
-	var currentEditor = null;
-	var mediaFrameIcon  = null;
-	var mediaFrameLink  = null;
+	var currentEditor    = null;
+	var currentShortcode = null;  // non-null when editing an existing button
+	var mediaFrameIcon   = null;
+	var mediaFrameLink   = null;
 
 	// -------------------------------------------------------------------------
 	// Public API
 	// -------------------------------------------------------------------------
-	window.ebpOpenDialog = function ( editor ) {
-		currentEditor = editor;
-		ebpResetForm();
+	window.ebpOpenDialog = function ( editor, shortcode ) {
+		currentEditor    = editor;
+		currentShortcode = shortcode || null;
+
+		if ( currentShortcode ) {
+			ebpPopulateForm( ebpParseShortcode( currentShortcode ) );
+			$( '#ebp-modal-title-text' ).text( ebpData.i18n.titleEdit );
+			$( '#ebp-btn-insert-label' ).text( ebpData.i18n.update );
+		} else {
+			ebpResetForm();
+			$( '#ebp-modal-title-text' ).text( ebpData.i18n.title );
+			$( '#ebp-btn-insert-label' ).text( ebpData.i18n.insert );
+		}
+
 		$( '#ebp-modal-overlay' ).fadeIn( 150 );
 		$( '#ebp-f-text' ).trigger( 'focus' );
 	};
@@ -247,6 +259,124 @@
 	}
 
 	// -------------------------------------------------------------------------
+	// Parse a raw [eifelhoster_button key="value" ...] string into an attrs map.
+	// HTML-encoded &quot; in stored values is unescaped back to ".
+	// Note: attribute values that contain literal " characters are not
+	// round-tripped perfectly through TinyMCE's DOM (the DOM decodes &quot; to
+	// "), but this covers all practical shortcode attribute values.
+	// -------------------------------------------------------------------------
+	function ebpParseShortcode( shortcode ) {
+		var attrs = {};
+		var re    = /(\w+)="([^"]*)"/g;
+		var match;
+		while ( ( match = re.exec( shortcode ) ) !== null ) {
+			attrs[ match[1] ] = match[2].replace( /&quot;/g, '"' );
+		}
+		return attrs;
+	}
+
+	// -------------------------------------------------------------------------
+	// Populate the form from a parsed attrs object (used when editing a button).
+	// Falls back to plugin defaults for any attribute that is missing.
+	// -------------------------------------------------------------------------
+	function ebpPopulateForm( attrs ) {
+		var d = ebpData.defaults;
+
+		function get( key, fallback ) {
+			var v = attrs[ key ];
+			if ( v !== undefined && v !== '' ) {
+				return v;
+			}
+			return ( fallback !== undefined ) ? fallback : d[ key ];
+		}
+
+		// Text & Font tab.
+		$( '#ebp-f-text' ).val( get( 'text', 'Button' ) );
+		$( '#ebp-f-font-family' ).val( get( 'font_family' ) );
+		$( '#ebp-f-font-size' ).val( get( 'font_size' ) );
+		$( '#ebp-f-font-bold' ).prop( 'checked', get( 'font_bold' ) === '1' );
+		$( '#ebp-f-font-italic' ).prop( 'checked', get( 'font_italic' ) === '1' );
+		$( '#ebp-f-padding-v' ).val( get( 'padding_v' ) );
+		$( '#ebp-f-padding-h' ).val( get( 'padding_h' ) );
+
+		// Colors tab.
+		ebpSetColor( '#ebp-f-bg-color',         get( 'bg_color' ) );
+		ebpSetColor( '#ebp-f-bg-hover-color',   get( 'bg_hover_color' ) );
+		ebpSetColor( '#ebp-f-text-color',       get( 'text_color' ) );
+		ebpSetColor( '#ebp-f-text-hover-color', get( 'text_hover_color' ) );
+		$( '#ebp-f-hover-grow' ).val( get( 'hover_grow' ) );
+		$( '#ebp-f-hover-grow-range' ).val( get( 'hover_grow' ) );
+
+		// Icon tab.
+		var iconType = get( 'icon_type', 'none' );
+		$( 'input[name="ebp-icon-type"][value="' + iconType + '"]' ).prop( 'checked', true );
+		$( '#ebp-dlg-row-dashicon' ).toggle( iconType === 'dashicon' );
+		$( '#ebp-dlg-row-media-icon' ).toggle( iconType === 'media' );
+		var iconVal      = get( 'icon' );
+		var iconMediaUrl = get( 'icon_media_url' );
+		$( '#ebp-f-icon' ).val( iconVal );
+		$( '#ebp-f-icon-media-url' ).val( iconMediaUrl );
+		$( '#ebp-f-icon-size' ).val( get( 'icon_size' ) );
+		$( '#ebp-f-icon-spacing' ).val( get( 'icon_spacing' ) );
+		$( 'input[name="ebp-icon-pos"][value="' + get( 'icon_position', 'before' ) + '"]' ).prop( 'checked', true );
+
+		if ( iconType === 'dashicon' && iconVal ) {
+			$( '#ebp-dlg-icon-preview' ).html(
+				'<span class="dashicons dashicons-' + ebpEscHtml( iconVal ) + '" style="font-size:24px;width:24px;height:24px"></span>' +
+				' <span style="font-size:11px;color:#666">' + ebpEscHtml( iconVal ) + '</span>'
+			);
+			// Use .filter() + .data() to avoid CSS-escaping issues in attribute selectors.
+			$( '#ebp-dlg-icon-grid .ebp-icon-item' ).removeClass( 'selected' )
+				.filter( function () { return $( this ).data( 'icon' ) === iconVal; } )
+				.addClass( 'selected' );
+		} else {
+			$( '#ebp-dlg-icon-preview' ).html( '' );
+		}
+
+		if ( iconType === 'media' && iconMediaUrl ) {
+			$( '#ebp-dlg-icon-media-preview' ).html(
+				'<img src="' + ebpEscHtml( iconMediaUrl ) + '" style="max-height:48px" />'
+			);
+		} else {
+			$( '#ebp-dlg-icon-media-preview' ).html( '' );
+		}
+
+		// Border & Shadow tab.
+		$( '#ebp-f-border-width' ).val( get( 'border_width' ) );
+		$( '#ebp-f-border-style' ).val( get( 'border_style' ) );
+		ebpSetColor( '#ebp-f-border-color', get( 'border_color' ) );
+		$( '#ebp-f-border-radius' ).val( get( 'border_radius' ) );
+		var shadowEnabled = get( 'shadow_enabled' ) === '1';
+		$( '#ebp-f-shadow-enabled' ).prop( 'checked', shadowEnabled );
+		$( '#ebp-dlg-shadow-fields' ).toggle( shadowEnabled );
+		$( '#ebp-f-shadow-x' ).val( get( 'shadow_x' ) );
+		$( '#ebp-f-shadow-y' ).val( get( 'shadow_y' ) );
+		$( '#ebp-f-shadow-blur' ).val( get( 'shadow_blur' ) );
+		$( '#ebp-f-shadow-spread' ).val( get( 'shadow_spread' ) );
+		$( '#ebp-f-shadow-color' ).val( get( 'shadow_color' ) );
+
+		// Link tab.
+		var linkType = get( 'link_type', 'url' );
+		$( 'input[name="ebp-link-type"][value="' + linkType + '"]' ).prop( 'checked', true );
+		ebpToggleLinkFields( linkType );
+		$( '#ebp-f-url' ).val( get( 'url', '' ) );
+		$( '#ebp-f-email' ).val( get( 'email', '' ) );
+		$( '#ebp-f-email-subject' ).val( get( 'email_subject', '' ) );
+		$( '#ebp-f-email-body' ).val( get( 'email_body', '' ) );
+		$( '#ebp-f-media-url' ).val( get( 'media_url', '' ) );
+		$( '#ebp-dlg-media-preview' ).html( '' );
+		$( 'input[name="ebp-target"][value="' + get( 'target', '_self' ) + '"]' ).prop( 'checked', true );
+
+		// Reset to first tab.
+		$( '.ebp-modal-tab' ).removeClass( 'active' );
+		$( '.ebp-modal-tab[data-tab="text"]' ).addClass( 'active' );
+		$( '.ebp-modal-panel' ).removeClass( 'active' );
+		$( '#ebp-panel-text' ).addClass( 'active' );
+
+		ebpUpdatePreview();
+	}
+
+	// -------------------------------------------------------------------------
 	// Toggle link-type-dependent rows
 	// -------------------------------------------------------------------------
 	function ebpToggleLinkFields( type ) {
@@ -260,7 +390,8 @@
 	// -------------------------------------------------------------------------
 	function ebpCloseDialog() {
 		$( '#ebp-modal-overlay' ).fadeOut( 150 );
-		currentEditor = null;
+		currentEditor    = null;
+		currentShortcode = null;
 	}
 
 	// -------------------------------------------------------------------------
@@ -276,7 +407,13 @@
 			sc += ' ' + k + '="' + v.replace( /"/g, '&quot;' ) + '"';
 		} );
 		sc += ']';
-		currentEditor.insertContent( sc );
+
+		if ( currentShortcode ) {
+			// Replace the selected (existing) shortcode.
+			currentEditor.selection.setContent( sc );
+		} else {
+			currentEditor.insertContent( sc );
+		}
 		ebpCloseDialog();
 	}
 
