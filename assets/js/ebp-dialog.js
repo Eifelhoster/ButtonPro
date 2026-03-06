@@ -7,16 +7,29 @@
 (function ( $ ) {
 	'use strict';
 
-	var currentEditor = null;
+	var currentEditor   = null;
 	var mediaFrameIcon  = null;
 	var mediaFrameLink  = null;
+	var isEditing       = false;
 
 	// -------------------------------------------------------------------------
 	// Public API
 	// -------------------------------------------------------------------------
 	window.ebpOpenDialog = function ( editor ) {
 		currentEditor = editor;
-		ebpResetForm();
+		isEditing     = false;
+
+		var existing = ebpGetShortcodeAtCursor( editor );
+		if ( existing ) {
+			// Select the shortcode text in the editor so setContent() replaces it.
+			ebpSelectShortcodeInEditor( editor, existing );
+			isEditing = true;
+			ebpResetForm();
+			ebpPopulateForm( ebpParseShortcodeAttrs( existing ) );
+		} else {
+			ebpResetForm();
+		}
+
 		$( '#ebp-modal-overlay' ).fadeIn( 150 );
 		$( '#ebp-f-text' ).trigger( 'focus' );
 	};
@@ -261,10 +274,11 @@
 	function ebpCloseDialog() {
 		$( '#ebp-modal-overlay' ).fadeOut( 150 );
 		currentEditor = null;
+		isEditing     = false;
 	}
 
 	// -------------------------------------------------------------------------
-	// Build shortcode and insert into editor
+	// Build shortcode and insert / replace in editor
 	// -------------------------------------------------------------------------
 	function ebpInsertShortcode() {
 		if ( ! currentEditor ) {
@@ -276,8 +290,222 @@
 			sc += ' ' + k + '="' + v.replace( /"/g, '&quot;' ) + '"';
 		} );
 		sc += ']';
-		currentEditor.insertContent( sc );
+
+		if ( isEditing ) {
+			// Replace the previously selected shortcode.
+			currentEditor.selection.setContent( sc );
+		} else {
+			currentEditor.insertContent( sc );
+		}
 		ebpCloseDialog();
+	}
+
+	// -------------------------------------------------------------------------
+	// Detect shortcode at TinyMCE cursor position
+	// Returns the raw shortcode string (e.g. [eifelhoster_button text="…" …])
+	// or null when the cursor is not inside one.
+	// -------------------------------------------------------------------------
+	function ebpGetShortcodeAtCursor( editor ) {
+		var sel            = editor.selection;
+		var rng            = sel.getRng( true );
+		var startContainer = rng.startContainer;
+		var startOffset    = rng.startOffset;
+
+		// Walk up to the nearest element node.
+		var container = startContainer.nodeType === 3
+			? startContainer.parentNode
+			: startContainer;
+
+		// Collect the full text of the container and the cursor's byte-offset
+		// within that text using a TreeWalker over the editor document.
+		var editorDoc = editor.getDoc();
+		var allText   = '';
+		var cursorPos = 0;
+		var cursorSet = false;
+
+		var walker = editorDoc.createTreeWalker(
+			container,
+			NodeFilter.SHOW_TEXT,
+			null,
+			false
+		);
+
+		var tn;
+		while ( ( tn = walker.nextNode() ) ) {
+			if ( ! cursorSet && tn === startContainer ) {
+				cursorPos = allText.length + startOffset;
+				cursorSet = true;
+			}
+			allText += tn.textContent;
+		}
+
+		// Fallback when the TreeWalker did not encounter the start node.
+		if ( ! cursorSet ) {
+			allText   = container.textContent || '';
+			cursorPos = allText.length;
+		}
+
+		// Find every [eifelhoster_button …] shortcode in the collected text
+		// and return the one that brackets the cursor position.
+		var re = /\[eifelhoster_button\b[^\]]*\]/g;
+		var match;
+		while ( ( match = re.exec( allText ) ) !== null ) {
+			var start = match.index;
+			var end   = start + match[0].length;
+			if ( cursorPos >= start && cursorPos <= end ) {
+				return match[0];
+			}
+		}
+		return null;
+	}
+
+	// -------------------------------------------------------------------------
+	// Select a shortcode string inside the TinyMCE body so that a subsequent
+	// editor.selection.setContent() replaces it in place.
+	// -------------------------------------------------------------------------
+	function ebpSelectShortcodeInEditor( editor, sc ) {
+		var editorDoc = editor.getDoc();
+		var body      = editor.getBody();
+
+		var walker = editorDoc.createTreeWalker(
+			body,
+			NodeFilter.SHOW_TEXT,
+			null,
+			false
+		);
+
+		var tn;
+		while ( ( tn = walker.nextNode() ) ) {
+			var idx = tn.textContent.indexOf( sc );
+			if ( idx !== -1 ) {
+				var range = editorDoc.createRange();
+				range.setStart( tn, idx );
+				range.setEnd( tn, idx + sc.length );
+				editor.selection.setRng( range );
+				return;
+			}
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Parse shortcode attribute string into a plain object.
+	// Handles both attr="value" and &quot; encoded quotes.
+	// -------------------------------------------------------------------------
+	function ebpParseShortcodeAttrs( sc ) {
+		var attrs = {};
+		// Match   key="value"   pairs (value may contain &quot; but not raw quotes).
+		var re = /(\w+)="([^"]*)"/g;
+		var match;
+		while ( ( match = re.exec( sc ) ) !== null ) {
+			attrs[ match[1] ] = match[2].replace( /&quot;/g, '"' );
+		}
+		return attrs;
+	}
+
+	// -------------------------------------------------------------------------
+	// Populate all dialog form fields from a parsed attributes object.
+	// Falls back to the default value (from ebpResetForm) for any missing key.
+	// -------------------------------------------------------------------------
+	function ebpPopulateForm( attrs ) {
+		function v( key ) {
+			return attrs.hasOwnProperty( key ) ? attrs[ key ] : null;
+		}
+
+		// Text & Font tab.
+		if ( v( 'text' )        !== null ) { $( '#ebp-f-text' ).val( v( 'text' ) ); }
+		if ( v( 'font_family' ) !== null ) { $( '#ebp-f-font-family' ).val( v( 'font_family' ) ); }
+		if ( v( 'font_size' )   !== null ) { $( '#ebp-f-font-size' ).val( v( 'font_size' ) ); }
+		if ( v( 'font_bold' )   !== null ) { $( '#ebp-f-font-bold' ).prop( 'checked', v( 'font_bold' )   === '1' ); }
+		if ( v( 'font_italic' ) !== null ) { $( '#ebp-f-font-italic' ).prop( 'checked', v( 'font_italic' ) === '1' ); }
+		if ( v( 'padding_v' )   !== null ) { $( '#ebp-f-padding-v' ).val( v( 'padding_v' ) ); }
+		if ( v( 'padding_h' )   !== null ) { $( '#ebp-f-padding-h' ).val( v( 'padding_h' ) ); }
+
+		// Colors tab.
+		if ( v( 'bg_color' )         !== null ) { ebpSetColor( '#ebp-f-bg-color',         v( 'bg_color' ) ); }
+		if ( v( 'bg_hover_color' )   !== null ) { ebpSetColor( '#ebp-f-bg-hover-color',   v( 'bg_hover_color' ) ); }
+		if ( v( 'text_color' )       !== null ) { ebpSetColor( '#ebp-f-text-color',       v( 'text_color' ) ); }
+		if ( v( 'text_hover_color' ) !== null ) { ebpSetColor( '#ebp-f-text-hover-color', v( 'text_hover_color' ) ); }
+		if ( v( 'hover_grow' )       !== null ) {
+			$( '#ebp-f-hover-grow' ).val( v( 'hover_grow' ) );
+			$( '#ebp-f-hover-grow-range' ).val( v( 'hover_grow' ) );
+		}
+
+		// Icon tab.
+		if ( v( 'icon_type' ) !== null ) {
+			var iconType = v( 'icon_type' );
+			$( 'input[name="ebp-icon-type"][value="' + iconType + '"]' ).prop( 'checked', true );
+			$( '#ebp-dlg-row-dashicon' ).toggle( iconType === 'dashicon' );
+			$( '#ebp-dlg-row-media-icon' ).toggle( iconType === 'media' );
+
+			var iconName     = v( 'icon' )           || '';
+			var iconMediaUrl = v( 'icon_media_url' ) || '';
+
+			if ( iconType === 'dashicon' && iconName ) {
+				$( '#ebp-f-icon' ).val( iconName );
+				$( '#ebp-dlg-icon-preview' ).html(
+					'<span class="dashicons dashicons-' + ebpEscHtml( iconName ) + '" style="font-size:24px;width:24px;height:24px"></span>' +
+					' <span style="font-size:11px;color:#666">' + ebpEscHtml( iconName ) + '</span>'
+				);
+				$( '#ebp-dlg-icon-grid .ebp-icon-item' ).removeClass( 'selected' );
+			$( '#ebp-dlg-icon-grid .ebp-icon-item' ).filter( function () {
+				return $( this ).data( 'icon' ) === iconName;
+			} ).addClass( 'selected' );
+			} else if ( iconType === 'media' && iconMediaUrl ) {
+				$( '#ebp-f-icon-media-url' ).val( iconMediaUrl );
+				$( '#ebp-dlg-icon-media-preview' ).html(
+					'<img src="' + ebpEscHtml( iconMediaUrl ) + '" style="max-height:48px;margin-top:4px" />'
+				);
+			}
+		}
+		if ( v( 'icon' )           !== null ) { $( '#ebp-f-icon' ).val( v( 'icon' ) ); }
+		if ( v( 'icon_media_url' ) !== null ) { $( '#ebp-f-icon-media-url' ).val( v( 'icon_media_url' ) ); }
+		if ( v( 'icon_size' )      !== null ) { $( '#ebp-f-icon-size' ).val( v( 'icon_size' ) ); }
+		if ( v( 'icon_spacing' )   !== null ) { $( '#ebp-f-icon-spacing' ).val( v( 'icon_spacing' ) ); }
+		if ( v( 'icon_position' )  !== null ) {
+			$( 'input[name="ebp-icon-pos"][value="' + v( 'icon_position' ) + '"]' ).prop( 'checked', true );
+		}
+
+		// Border & Shadow tab.
+		if ( v( 'border_width' )   !== null ) { $( '#ebp-f-border-width' ).val( v( 'border_width' ) ); }
+		if ( v( 'border_style' )   !== null ) { $( '#ebp-f-border-style' ).val( v( 'border_style' ) ); }
+		if ( v( 'border_color' )   !== null ) { ebpSetColor( '#ebp-f-border-color', v( 'border_color' ) ); }
+		if ( v( 'border_radius' )  !== null ) { $( '#ebp-f-border-radius' ).val( v( 'border_radius' ) ); }
+		if ( v( 'shadow_enabled' ) !== null ) {
+			var shadowOn = v( 'shadow_enabled' ) === '1';
+			$( '#ebp-f-shadow-enabled' ).prop( 'checked', shadowOn );
+			$( '#ebp-dlg-shadow-fields' ).toggle( shadowOn );
+		}
+		if ( v( 'shadow_x' )      !== null ) { $( '#ebp-f-shadow-x' ).val( v( 'shadow_x' ) ); }
+		if ( v( 'shadow_y' )      !== null ) { $( '#ebp-f-shadow-y' ).val( v( 'shadow_y' ) ); }
+		if ( v( 'shadow_blur' )   !== null ) { $( '#ebp-f-shadow-blur' ).val( v( 'shadow_blur' ) ); }
+		if ( v( 'shadow_spread' ) !== null ) { $( '#ebp-f-shadow-spread' ).val( v( 'shadow_spread' ) ); }
+		if ( v( 'shadow_color' )  !== null ) { $( '#ebp-f-shadow-color' ).val( v( 'shadow_color' ) ); }
+
+		// Link tab.
+		if ( v( 'link_type' ) !== null ) {
+			var linkType = v( 'link_type' );
+			$( 'input[name="ebp-link-type"][value="' + linkType + '"]' ).prop( 'checked', true );
+			ebpToggleLinkFields( linkType );
+		}
+		if ( v( 'url' )           !== null ) { $( '#ebp-f-url' ).val( v( 'url' ) ); }
+		if ( v( 'email' )         !== null ) { $( '#ebp-f-email' ).val( v( 'email' ) ); }
+		if ( v( 'email_subject' ) !== null ) { $( '#ebp-f-email-subject' ).val( v( 'email_subject' ) ); }
+		if ( v( 'email_body' )    !== null ) { $( '#ebp-f-email-body' ).val( v( 'email_body' ) ); }
+		if ( v( 'media_url' )     !== null ) {
+			$( '#ebp-f-media-url' ).val( v( 'media_url' ) );
+			if ( v( 'media_url' ) ) {
+				$( '#ebp-dlg-media-preview' ).html(
+					'<span class="dashicons dashicons-media-default" style="vertical-align:middle"></span> ' +
+					'<a href="' + ebpEscHtml( v( 'media_url' ) ) + '" target="_blank" rel="noopener">' +
+					ebpEscHtml( v( 'media_url' ) ) + '</a>'
+				);
+			}
+		}
+		if ( v( 'target' ) !== null ) {
+			$( 'input[name="ebp-target"][value="' + v( 'target' ) + '"]' ).prop( 'checked', true );
+		}
+
+		ebpUpdatePreview();
 	}
 
 	// -------------------------------------------------------------------------
