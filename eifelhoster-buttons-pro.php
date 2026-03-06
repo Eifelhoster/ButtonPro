@@ -3,7 +3,7 @@
  * Plugin Name: Eifelhoster Buttons Pro
  * Plugin URI:  https://eifelhoster.de
  * Description: Fügt grafisch gestaltete Buttons in den WordPress Classic Editor ein.
- * Version:     3.0.0
+ * Version:     3.8.0
  * Author:      Michael Krämer
  * Author URI:  https://eifelhoster.de
  * License:     GPL-2.0+
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-define( 'EBP_VERSION',    '3.0.0' );
+define( 'EBP_VERSION',    '3.8.0' );
 define( 'EBP_PLUGIN_DIR', plugin_dir_path( __FILE__ ) );
 define( 'EBP_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'EBP_OPTION_KEY', 'ebp_defaults' );
