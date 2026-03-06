@@ -15,6 +15,8 @@ class EBP_Editor {
 		add_filter( 'mce_external_plugins',   array( $this, 'mce_plugin' ) );
 		add_filter( 'mce_buttons',            array( $this, 'mce_button' ) );
 		add_action( 'admin_footer',           array( $this, 'render_dialog' ) );
+		// AJAX: content search (logged-in users only).
+		add_action( 'wp_ajax_ebp_search_content', array( $this, 'ajax_search_content' ) );
 	}
 
 	/** Only enqueue on post / page editing screens. */
@@ -47,9 +49,11 @@ class EBP_Editor {
 
 		$defaults = ebp_get_defaults();
 		wp_localize_script( 'ebp-dialog', 'ebpData', array(
-			'defaults'  => $defaults,
-			'dashicons' => ebp_get_dashicons(),
-			'i18n'      => array(
+			'defaults'      => $defaults,
+			'dashicons'     => ebp_get_dashicons(),
+			'ajaxurl'       => admin_url( 'admin-ajax.php' ),
+			'searchNonce'   => wp_create_nonce( 'ebp_search_content' ),
+			'i18n'          => array(
 				'title'         => __( 'Eifelhoster Button einfügen', 'eifelhoster-buttons-pro' ),
 				'insert'        => __( 'Button einfügen', 'eifelhoster-buttons-pro' ),
 				'cancel'        => __( 'Abbrechen', 'eifelhoster-buttons-pro' ),
@@ -64,6 +68,7 @@ class EBP_Editor {
 				'tabIcon'       => __( 'Symbol', 'eifelhoster-buttons-pro' ),
 				'tabBorder'     => __( 'Rahmen & Schatten', 'eifelhoster-buttons-pro' ),
 				'tabLink'       => __( 'Link & Ziel', 'eifelhoster-buttons-pro' ),
+				'noResults'     => __( 'Keine Ergebnisse', 'eifelhoster-buttons-pro' ),
 			),
 		) );
 	}
@@ -308,8 +313,7 @@ class EBP_Editor {
 										<tr>
 											<td><?php esc_html_e( 'Farbe:', 'eifelhoster-buttons-pro' ); ?></td>
 											<td colspan="3">
-												<input type="text" id="ebp-f-shadow-color" placeholder="rgba(0,0,0,0.3)"
-													style="width:200px" />
+												<input type="text" id="ebp-f-shadow-color" class="ebp-dialog-color" />
 											</td>
 										</tr>
 									</table>
@@ -332,6 +336,9 @@ class EBP_Editor {
 									&nbsp;
 									<label><input type="radio" name="ebp-link-type" value="media" id="ebp-f-link-type-media" />
 										<?php esc_html_e( 'Mediendatei', 'eifelhoster-buttons-pro' ); ?></label>
+									&nbsp;
+									<label><input type="radio" name="ebp-link-type" value="content" id="ebp-f-link-type-content" />
+										<?php esc_html_e( 'Inhalte', 'eifelhoster-buttons-pro' ); ?></label>
 								</td>
 							</tr>
 							<!-- URL fields -->
@@ -362,6 +369,18 @@ class EBP_Editor {
 										<?php esc_html_e( 'Datei auswählen', 'eifelhoster-buttons-pro' ); ?>
 									</button>
 									<div id="ebp-dlg-media-preview" style="margin-top:6px;font-size:12px;color:#666"></div>
+								</td>
+							</tr>
+							<!-- Content / Inhalte fields -->
+							<tr id="ebp-dlg-row-content">
+								<th><?php esc_html_e( 'Inhalt suchen', 'eifelhoster-buttons-pro' ); ?></th>
+								<td>
+									<input type="text" id="ebp-f-content-search" class="ebp-full-width"
+										placeholder="<?php esc_attr_e( 'Mindestens 2 Zeichen eingeben…', 'eifelhoster-buttons-pro' ); ?>"
+										autocomplete="off" />
+									<input type="hidden" id="ebp-f-content-url" value="" />
+									<div id="ebp-dlg-content-results" class="ebp-content-results"></div>
+									<div id="ebp-dlg-content-selected" class="ebp-content-selected"></div>
 								</td>
 							</tr>
 							<tr>
@@ -409,5 +428,45 @@ class EBP_Editor {
 			</div><!-- #ebp-modal -->
 		</div><!-- #ebp-modal-overlay -->
 		<?php
+	}
+
+	/**
+	 * AJAX handler: search published posts, pages and CPTs.
+	 */
+	public function ajax_search_content() {
+		check_ajax_referer( 'ebp_search_content', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( __( 'Unauthorized', 'eifelhoster-buttons-pro' ), 403 );
+		}
+
+		$search = isset( $_GET['s'] ) ? sanitize_text_field( wp_unslash( $_GET['s'] ) ) : '';
+
+		if ( strlen( $search ) < 2 ) {
+			wp_send_json_success( array() );
+		}
+
+		$post_types = get_post_types( array( 'public' => true ), 'names' );
+
+		$posts = get_posts( array(
+			's'              => $search,
+			'post_type'      => array_values( $post_types ),
+			'post_status'    => 'publish',
+			'posts_per_page' => 20,
+		) );
+
+		$results = array();
+		foreach ( $posts as $post ) {
+			$type_obj  = get_post_type_object( $post->post_type );
+			$type_label = $type_obj ? $type_obj->labels->singular_name : $post->post_type;
+			$results[] = array(
+				'id'    => $post->ID,
+				'title' => $post->post_title,
+				'type'  => $type_label,
+				'url'   => get_permalink( $post->ID ),
+			);
+		}
+
+		wp_send_json_success( $results );
 	}
 }

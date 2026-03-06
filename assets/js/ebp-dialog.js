@@ -149,6 +149,74 @@
 			} );
 			mediaFrameIcon.open();
 		} );
+
+		// Content (Inhalte) search – AJAX autocomplete.
+		var contentSearchTimer = null;
+		$( document ).on( 'input', '#ebp-f-content-search', function () {
+			var q = $( this ).val();
+			var $results = $( '#ebp-dlg-content-results' );
+			clearTimeout( contentSearchTimer );
+			if ( q.length < 2 ) {
+				$results.empty().hide();
+				return;
+			}
+			contentSearchTimer = setTimeout( function () {
+				$.ajax( {
+					url      : ebpData.ajaxurl,
+					method   : 'GET',
+					dataType : 'json',
+					data     : {
+						action : 'ebp_search_content',
+						nonce  : ebpData.searchNonce,
+						s      : q,
+					},
+					success  : function ( response ) {
+						$results.empty();
+						if ( ! response.success || ! response.data.length ) {
+							$results.append(
+								$( '<div>' ).addClass( 'ebp-content-result-item ebp-content-no-results' )
+									.text( ebpData.i18n.noResults || 'Keine Ergebnisse' )
+							);
+							$results.show();
+							return;
+						}
+						$.each( response.data, function ( i, item ) {
+							var $item = $( '<div>' )
+								.addClass( 'ebp-content-result-item' )
+								.html(
+									'<strong>' + ebpEscHtml( item.title ) + '</strong>' +
+									' <span class="ebp-content-type">' + ebpEscHtml( item.type ) + '</span>'
+								)
+								.data( 'url', item.url )
+								.data( 'title', item.title );
+							$results.append( $item );
+						} );
+						$results.show();
+					},
+				} );
+			}, 300 );
+		} );
+
+		$( document ).on( 'click', '#ebp-dlg-content-results .ebp-content-result-item', function () {
+			var url   = $( this ).data( 'url' );
+			var title = $( this ).data( 'title' );
+			if ( ! url ) { return; }
+			$( '#ebp-f-content-url' ).val( url );
+			$( '#ebp-f-content-search' ).val( title );
+			$( '#ebp-dlg-content-results' ).empty().hide();
+			$( '#ebp-dlg-content-selected' ).html(
+				'<span class="dashicons dashicons-yes-alt" style="color:#00a32a;vertical-align:middle"></span> ' +
+				'<a href="' + ebpEscHtml( encodeURI( url ) ) + '" target="_blank" rel="noopener">' + ebpEscHtml( url ) + '</a>'
+			);
+			ebpUpdatePreview();
+		} );
+
+		// Hide content results when clicking outside.
+		$( document ).on( 'click', function ( e ) {
+			if ( ! $( e.target ).closest( '#ebp-dlg-row-content' ).length ) {
+				$( '#ebp-dlg-content-results' ).empty().hide();
+			}
+		} );
 	} );
 
 	// -------------------------------------------------------------------------
@@ -213,7 +281,7 @@
 		$( '#ebp-f-shadow-y' ).val( d.shadow_y );
 		$( '#ebp-f-shadow-blur' ).val( d.shadow_blur );
 		$( '#ebp-f-shadow-spread' ).val( d.shadow_spread );
-		$( '#ebp-f-shadow-color' ).val( d.shadow_color );
+		ebpSetColor( '#ebp-f-shadow-color', d.shadow_color );
 
 		// Link tab.
 		$( 'input[name="ebp-link-type"][value="' + d.link_type + '"]' ).prop( 'checked', true );
@@ -224,6 +292,10 @@
 		$( '#ebp-f-email-body' ).val( d.email_body );
 		$( '#ebp-f-media-url' ).val( d.media_url );
 		$( '#ebp-dlg-media-preview' ).html( '' );
+		$( '#ebp-f-content-search' ).val( '' );
+		$( '#ebp-f-content-url' ).val( '' );
+		$( '#ebp-dlg-content-results' ).empty().hide();
+		$( '#ebp-dlg-content-selected' ).empty();
 		$( 'input[name="ebp-target"][value="' + d.target + '"]' ).prop( 'checked', true );
 
 		// Reset to first tab.
@@ -253,6 +325,7 @@
 		$( '#ebp-dlg-row-url' ).toggle( type === 'url' );
 		$( '#ebp-dlg-row-email' ).toggle( type === 'email' );
 		$( '#ebp-dlg-row-media' ).toggle( type === 'media' );
+		$( '#ebp-dlg-row-content' ).toggle( type === 'content' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -317,9 +390,10 @@
 			shadow_y         : $( '#ebp-f-shadow-y' ).val(),
 			shadow_blur      : $( '#ebp-f-shadow-blur' ).val(),
 			shadow_spread    : $( '#ebp-f-shadow-spread' ).val(),
-			shadow_color     : $( '#ebp-f-shadow-color' ).val(),
+			shadow_color     : ebpGetColor( '#ebp-f-shadow-color' ),
 			link_type        : linkType,
 			url              : $( '#ebp-f-url' ).val(),
+			content_url      : $( '#ebp-f-content-url' ).val(),
 			email            : $( '#ebp-f-email' ).val(),
 			email_subject    : $( '#ebp-f-email-subject' ).val(),
 			email_body       : $( '#ebp-f-email-body' ).val(),

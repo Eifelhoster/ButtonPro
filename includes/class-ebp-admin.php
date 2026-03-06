@@ -71,7 +71,7 @@ class EBP_Admin {
 			'icon_size', 'icon_spacing', 'border_width', 'border_color',
 			'border_radius', 'shadow_x', 'shadow_y', 'shadow_blur',
 			'shadow_spread', 'shadow_color', 'url', 'email',
-			'email_subject', 'media_url', 'bg_color', 'bg_hover_color',
+			'email_subject', 'media_url', 'content_url', 'bg_color', 'bg_hover_color',
 			'text_color', 'text_hover_color', 'hover_grow', 'padding_v', 'padding_h',
 		);
 		foreach ( $text_fields as $field ) {
@@ -89,7 +89,7 @@ class EBP_Admin {
 			'icon_type'     => array( 'none', 'dashicon', 'media' ),
 			'icon_position' => array( 'before', 'after' ),
 			'border_style'  => array( 'solid', 'dashed', 'dotted', 'double', 'none' ),
-			'link_type'     => array( 'url', 'email', 'media' ),
+			'link_type'     => array( 'url', 'email', 'media', 'content' ),
 			'target'        => array( '_self', '_blank' ),
 		);
 		foreach ( $select_fields as $field => $allowed ) {
@@ -408,7 +408,7 @@ class EBP_Admin {
 										<td colspan="3">
 											<input type="text" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[shadow_color]"
 												value="<?php echo esc_attr( $d['shadow_color'] ); ?>"
-												class="regular-text" placeholder="rgba(0,0,0,0.3)" />
+												class="ebp-color-picker" />
 										</td>
 									</tr>
 								</table>
@@ -439,6 +439,12 @@ class EBP_Admin {
 									<input type="radio" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[link_type]"
 										value="media" <?php checked( 'media', $d['link_type'] ); ?> class="ebp-link-type-radio" />
 									<?php esc_html_e( 'Mediendatei', 'eifelhoster-buttons-pro' ); ?>
+								</label>
+								&nbsp;
+								<label>
+									<input type="radio" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[link_type]"
+										value="content" <?php checked( 'content', $d['link_type'] ); ?> class="ebp-link-type-radio" />
+									<?php esc_html_e( 'Inhalte', 'eifelhoster-buttons-pro' ); ?>
 								</label>
 							</td>
 						</tr>

@@ -69,6 +69,7 @@ class EBP_Shortcode {
 			'shadow_color'     => $defaults['shadow_color'],
 			'link_type'        => $defaults['link_type'],
 			'url'              => $defaults['url'],
+			'content_url'      => $defaults['content_url'],
 			'email'            => $defaults['email'],
 			'email_subject'    => $defaults['email_subject'],
 			'email_body'       => $defaults['email_body'],
@@ -89,6 +90,8 @@ class EBP_Shortcode {
 		$href = '#';
 		if ( 'url' === $a['link_type'] ) {
 			$href = esc_url( $a['url'] );
+		} elseif ( 'content' === $a['link_type'] ) {
+			$href = esc_url( $a['content_url'] );
 		} elseif ( 'email' === $a['link_type'] ) {
 			// The email address itself must NOT be percent-encoded in mailto URIs.
 			$email  = sanitize_email( $a['email'] );

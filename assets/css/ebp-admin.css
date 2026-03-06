@@ -341,3 +341,57 @@
 .ebp-dialog-color + .wp-color-result {
 	margin: 0;
 }
+
+/* ============================================================
+   Content search autocomplete (dialog)
+   ============================================================ */
+
+.ebp-content-results {
+	display: none;
+	position: absolute;
+	z-index: 100100;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 0 0 4px 4px;
+	max-height: 200px;
+	overflow-y: auto;
+	width: 100%;
+	box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+	margin-top: -1px;
+}
+#ebp-dlg-row-content td {
+	position: relative;
+}
+.ebp-content-result-item {
+	padding: 8px 12px;
+	cursor: pointer;
+	font-size: 13px;
+	border-bottom: 1px solid #f0f0f1;
+	line-height: 1.4;
+}
+.ebp-content-result-item:last-child {
+	border-bottom: none;
+}
+.ebp-content-result-item:hover {
+	background: #f0f6fc;
+}
+.ebp-content-result-item.ebp-content-no-results {
+	color: #646970;
+	cursor: default;
+}
+.ebp-content-result-item .ebp-content-type {
+	font-size: 11px;
+	color: #646970;
+	background: #f0f0f1;
+	padding: 1px 5px;
+	border-radius: 3px;
+	margin-left: 4px;
+}
+.ebp-content-selected {
+	margin-top: 6px;
+	font-size: 12px;
+	color: #3c434a;
+}
+.ebp-content-selected a {
+	word-break: break-all;
+}
