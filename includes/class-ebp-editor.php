@@ -91,7 +91,7 @@ class EBP_Editor {
 		check_ajax_referer( 'ebp_search_content', 'nonce' );
 
 		if ( ! current_user_can( 'edit_posts' ) ) {
-			wp_send_json_error( 'Unauthorized', 403 );
+			wp_send_json_error( __( 'Unauthorized', 'eifelhoster-buttons-pro' ), 403 );
 		}
 
 		$search = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '';
