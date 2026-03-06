@@ -73,6 +73,7 @@ class EBP_Shortcode {
 			'email_subject'    => $defaults['email_subject'],
 			'email_body'       => $defaults['email_body'],
 			'media_url'        => $defaults['media_url'],
+			'content_url'      => $defaults['content_url'],
 			'target'           => $defaults['target'],
 		), $atts, 'eifelhoster_button' );
 
@@ -106,6 +107,8 @@ class EBP_Shortcode {
 			$href = esc_attr( $mailto );
 		} elseif ( 'media' === $a['link_type'] ) {
 			$href = esc_url( $a['media_url'] );
+		} elseif ( 'content' === $a['link_type'] ) {
+			$href = esc_url( $a['content_url'] );
 		}
 
 		// ---- Build inline style ----

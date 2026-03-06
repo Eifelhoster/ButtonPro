@@ -341,3 +341,36 @@
 .ebp-dialog-color + .wp-color-result {
 	margin: 0;
 }
+
+/* Content search autocomplete */
+.ebp-content-results {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	background: #fff;
+	border: 1px solid #2271b1;
+	border-top: none;
+	border-radius: 0 0 4px 4px;
+	max-height: 200px;
+	overflow-y: auto;
+	z-index: 100001;
+	box-shadow: 0 4px 8px rgba(0,0,0,.15);
+}
+.ebp-content-result-item {
+	padding: 7px 10px;
+	font-size: 12px;
+	cursor: pointer;
+	border-bottom: 1px solid #f0f0f1;
+	color: #2c3338;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+.ebp-content-result-item:last-child {
+	border-bottom: none;
+}
+.ebp-content-result-item:hover {
+	background: #2271b1;
+	color: #fff;
+}

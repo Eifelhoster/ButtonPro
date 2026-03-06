@@ -15,6 +15,7 @@ class EBP_Editor {
 		add_filter( 'mce_external_plugins',   array( $this, 'mce_plugin' ) );
 		add_filter( 'mce_buttons',            array( $this, 'mce_button' ) );
 		add_action( 'admin_footer',           array( $this, 'render_dialog' ) );
+		add_action( 'wp_ajax_ebp_search_content', array( $this, 'ajax_search_content' ) );
 	}
 
 	/** Only enqueue on post / page editing screens. */
@@ -47,8 +48,10 @@ class EBP_Editor {
 
 		$defaults = ebp_get_defaults();
 		wp_localize_script( 'ebp-dialog', 'ebpData', array(
-			'defaults'  => $defaults,
-			'dashicons' => ebp_get_dashicons(),
+			'defaults'           => $defaults,
+			'dashicons'          => ebp_get_dashicons(),
+			'ajaxurl'            => admin_url( 'admin-ajax.php' ),
+			'searchContentNonce' => wp_create_nonce( 'ebp_search_content' ),
 			'i18n'      => array(
 				'title'         => __( 'Eifelhoster Button einfügen', 'eifelhoster-buttons-pro' ),
 				'insert'        => __( 'Button einfügen', 'eifelhoster-buttons-pro' ),
@@ -81,6 +84,44 @@ class EBP_Editor {
 	public function mce_button( $buttons ) {
 		array_push( $buttons, 'ebp_button' );
 		return $buttons;
+	}
+
+	/** AJAX handler: search posts/pages/CPTs for content link type. */
+	public function ajax_search_content() {
+		check_ajax_referer( 'ebp_search_content', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( 'Unauthorized', 403 );
+		}
+
+		$search = isset( $_GET['q'] ) ? sanitize_text_field( wp_unslash( $_GET['q'] ) ) : '';
+
+		if ( strlen( $search ) < 2 ) {
+			wp_send_json_success( array() );
+		}
+
+		$post_types = get_post_types( array( 'public' => true ), 'names' );
+
+		$query = new WP_Query( array(
+			's'              => $search,
+			'post_type'      => array_values( $post_types ),
+			'post_status'    => 'publish',
+			'posts_per_page' => 20,
+			'no_found_rows'  => true,
+		) );
+
+		$results = array();
+		foreach ( $query->posts as $post ) {
+			$type_obj  = get_post_type_object( $post->post_type );
+			$results[] = array(
+				'id'    => $post->ID,
+				'title' => $post->post_title,
+				'url'   => get_permalink( $post ),
+				'type'  => $type_obj ? $type_obj->labels->singular_name : $post->post_type,
+			);
+		}
+
+		wp_send_json_success( $results );
 	}
 
 	/** Output the (hidden) dialog HTML into the admin footer. */
@@ -308,8 +349,8 @@ class EBP_Editor {
 										<tr>
 											<td><?php esc_html_e( 'Farbe:', 'eifelhoster-buttons-pro' ); ?></td>
 											<td colspan="3">
-												<input type="text" id="ebp-f-shadow-color" placeholder="rgba(0,0,0,0.3)"
-													style="width:200px" />
+												<input type="text" id="ebp-f-shadow-color"
+													class="ebp-dialog-color" />
 											</td>
 										</tr>
 									</table>
@@ -332,6 +373,9 @@ class EBP_Editor {
 									&nbsp;
 									<label><input type="radio" name="ebp-link-type" value="media" id="ebp-f-link-type-media" />
 										<?php esc_html_e( 'Mediendatei', 'eifelhoster-buttons-pro' ); ?></label>
+									&nbsp;
+									<label><input type="radio" name="ebp-link-type" value="content" id="ebp-f-link-type-content" />
+										<?php esc_html_e( 'Inhalte', 'eifelhoster-buttons-pro' ); ?></label>
 								</td>
 							</tr>
 							<!-- URL fields -->
@@ -362,6 +406,20 @@ class EBP_Editor {
 										<?php esc_html_e( 'Datei auswählen', 'eifelhoster-buttons-pro' ); ?>
 									</button>
 									<div id="ebp-dlg-media-preview" style="margin-top:6px;font-size:12px;color:#666"></div>
+								</td>
+							</tr>
+							<!-- Content (Inhalte) fields -->
+							<tr id="ebp-dlg-row-content">
+								<th><?php esc_html_e( 'Inhalte suchen', 'eifelhoster-buttons-pro' ); ?></th>
+								<td>
+									<div style="position:relative">
+										<input type="text" id="ebp-f-content-search" class="ebp-full-width"
+											placeholder="<?php esc_attr_e( 'Mindestens 2 Zeichen eingeben…', 'eifelhoster-buttons-pro' ); ?>"
+											autocomplete="off" />
+										<div id="ebp-dlg-content-results" class="ebp-content-results" style="display:none"></div>
+									</div>
+									<input type="hidden" id="ebp-f-content-url" value="" />
+									<div id="ebp-dlg-content-selected" style="margin-top:6px;font-size:12px;color:#666"></div>
 								</td>
 							</tr>
 							<tr>

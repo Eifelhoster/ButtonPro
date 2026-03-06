@@ -149,6 +149,60 @@
 			} );
 			mediaFrameIcon.open();
 		} );
+
+		// Content search autocomplete.
+		var contentSearchTimer = null;
+		$( document ).on( 'input', '#ebp-f-content-search', function () {
+			var q = $( this ).val();
+			clearTimeout( contentSearchTimer );
+			if ( q.length < 2 ) {
+				$( '#ebp-dlg-content-results' ).empty().hide();
+				return;
+			}
+			contentSearchTimer = setTimeout( function () {
+				$.ajax( {
+					url : ebpData.ajaxurl,
+					data: {
+						action: 'ebp_search_content',
+						nonce : ebpData.searchContentNonce,
+						q     : q,
+					},
+					success: function ( response ) {
+						var $results = $( '#ebp-dlg-content-results' ).empty();
+						if ( ! response.success || ! response.data.length ) {
+							$results.hide();
+							return;
+						}
+						response.data.forEach( function ( item ) {
+							$( '<div>' )
+								.addClass( 'ebp-content-result-item' )
+								.text( item.title + ' (' + item.type + ')' )
+								.data( 'url',   item.url )
+								.data( 'title', item.title )
+								.appendTo( $results );
+						} );
+						$results.show();
+					},
+				} );
+			}, 300 );
+		} );
+
+		$( document ).on( 'click', '.ebp-content-result-item', function () {
+			var url   = $( this ).data( 'url' );
+			var title = $( this ).data( 'title' );
+			$( '#ebp-f-content-url' ).val( url );
+			$( '#ebp-f-content-search' ).val( title );
+			$( '#ebp-dlg-content-results' ).empty().hide();
+			$( '#ebp-dlg-content-selected' ).text( url );
+			ebpUpdatePreview();
+		} );
+
+		// Hide content results when clicking outside.
+		$( document ).on( 'click', function ( e ) {
+			if ( ! $( e.target ).closest( '#ebp-dlg-row-content' ).length ) {
+				$( '#ebp-dlg-content-results' ).empty().hide();
+			}
+		} );
 	} );
 
 	// -------------------------------------------------------------------------
@@ -213,7 +267,7 @@
 		$( '#ebp-f-shadow-y' ).val( d.shadow_y );
 		$( '#ebp-f-shadow-blur' ).val( d.shadow_blur );
 		$( '#ebp-f-shadow-spread' ).val( d.shadow_spread );
-		$( '#ebp-f-shadow-color' ).val( d.shadow_color );
+		ebpSetColor( '#ebp-f-shadow-color', d.shadow_color );
 
 		// Link tab.
 		$( 'input[name="ebp-link-type"][value="' + d.link_type + '"]' ).prop( 'checked', true );
@@ -224,6 +278,10 @@
 		$( '#ebp-f-email-body' ).val( d.email_body );
 		$( '#ebp-f-media-url' ).val( d.media_url );
 		$( '#ebp-dlg-media-preview' ).html( '' );
+		$( '#ebp-f-content-url' ).val( d.content_url || '' );
+		$( '#ebp-f-content-search' ).val( '' );
+		$( '#ebp-dlg-content-results' ).empty().hide();
+		$( '#ebp-dlg-content-selected' ).text( d.content_url || '' );
 		$( 'input[name="ebp-target"][value="' + d.target + '"]' ).prop( 'checked', true );
 
 		// Reset to first tab.
@@ -253,6 +311,7 @@
 		$( '#ebp-dlg-row-url' ).toggle( type === 'url' );
 		$( '#ebp-dlg-row-email' ).toggle( type === 'email' );
 		$( '#ebp-dlg-row-media' ).toggle( type === 'media' );
+		$( '#ebp-dlg-row-content' ).toggle( type === 'content' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -317,13 +376,14 @@
 			shadow_y         : $( '#ebp-f-shadow-y' ).val(),
 			shadow_blur      : $( '#ebp-f-shadow-blur' ).val(),
 			shadow_spread    : $( '#ebp-f-shadow-spread' ).val(),
-			shadow_color     : $( '#ebp-f-shadow-color' ).val(),
+			shadow_color     : ebpGetColor( '#ebp-f-shadow-color' ),
 			link_type        : linkType,
 			url              : $( '#ebp-f-url' ).val(),
 			email            : $( '#ebp-f-email' ).val(),
 			email_subject    : $( '#ebp-f-email-subject' ).val(),
 			email_body       : $( '#ebp-f-email-body' ).val(),
 			media_url        : $( '#ebp-f-media-url' ).val(),
+			content_url      : $( '#ebp-f-content-url' ).val(),
 			target           : target,
 		};
 	}
