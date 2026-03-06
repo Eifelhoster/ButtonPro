@@ -165,6 +165,7 @@
 		$( '#ebp-f-font-italic' ).prop( 'checked', d.font_italic === '1' );
 		$( '#ebp-f-padding-v' ).val( d.padding_v );
 		$( '#ebp-f-padding-h' ).val( d.padding_h );
+		$( '#ebp-f-button-width' ).val( d.button_width );
 
 		// Colors tab.
 		ebpSetColor( '#ebp-f-bg-color',         d.bg_color );
@@ -302,6 +303,7 @@
 			hover_grow       : $( '#ebp-f-hover-grow' ).val(),
 			padding_v        : $( '#ebp-f-padding-v' ).val(),
 			padding_h        : $( '#ebp-f-padding-h' ).val(),
+			button_width     : $( '#ebp-f-button-width' ).val(),
 			icon_type        : iconType,
 			icon             : $( '#ebp-f-icon' ).val(),
 			icon_media_url   : $( '#ebp-f-icon-media-url' ).val(),
@@ -363,6 +365,8 @@
 			'color'           : attrs.text_color,
 			'padding'         : ( parseInt( attrs.padding_v, 10 ) || 10 ) + 'px ' +
 			                    ( parseInt( attrs.padding_h, 10 ) || 20 ) + 'px',
+			'min-width'       : ( parseInt( attrs.button_width, 10 ) > 0 )
+			                    ? parseInt( attrs.button_width, 10 ) + 'px' : '',
 			'border-width'    : ( parseInt( attrs.border_width, 10 ) || 0 ) + 'px',
 			'border-style'    : attrs.border_style || 'solid',
 			'border-color'    : attrs.border_color,

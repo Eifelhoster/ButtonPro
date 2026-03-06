@@ -25,6 +25,7 @@ function ebp_get_defaults() {
 		'hover_grow'       => '1',
 		'padding_v'        => '10',
 		'padding_h'        => '20',
+		'button_width'     => '300',
 		'icon_type'        => 'none',
 		'icon'             => '',
 		'icon_media_url'   => '',

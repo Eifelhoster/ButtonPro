@@ -51,6 +51,7 @@ class EBP_Shortcode {
 			'hover_grow'       => $defaults['hover_grow'],
 			'padding_v'        => $defaults['padding_v'],
 			'padding_h'        => $defaults['padding_h'],
+			'button_width'     => $defaults['button_width'],
 			'icon_type'        => $defaults['icon_type'],
 			'icon'             => $defaults['icon'],
 			'icon_media_url'   => $defaults['icon_media_url'],
@@ -129,6 +130,9 @@ class EBP_Shortcode {
 		$inline['background-color'] = ebp_sanitize_css_color( $a['bg_color'] );
 		$inline['color']            = ebp_sanitize_css_color( $a['text_color'] );
 		$inline['padding']          = absint( $a['padding_v'] ) . 'px ' . absint( $a['padding_h'] ) . 'px';
+		if ( absint( $a['button_width'] ) > 0 ) {
+			$inline['min-width'] = absint( $a['button_width'] ) . 'px';
+		}
 		$inline['border-width']     = absint( $a['border_width'] ) . 'px';
 		$inline['border-style']     = in_array( $a['border_style'], array( 'solid','dashed','dotted','double','none' ), true )
 			? $a['border_style'] : 'solid';
