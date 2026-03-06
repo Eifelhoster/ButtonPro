@@ -40,14 +40,17 @@ function ebp_get_defaults() {
 		'shadow_y'         => '2',
 		'shadow_blur'      => '4',
 		'shadow_spread'    => '0',
-		'shadow_color'     => 'rgba(0,0,0,0.3)',
+		'shadow_color'     => '#000000',
 		'link_type'        => 'url',
 		'url'              => '',
 		'email'            => '',
 		'email_subject'    => '',
 		'email_body'       => '',
 		'media_url'        => '',
+		'content_id'       => '0',
 		'target'           => '_self',
+		'button_width'     => '300',
+		'icon_color'       => '',
 	);
 
 	$saved = get_option( EBP_OPTION_KEY, array() );

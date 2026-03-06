@@ -51,12 +51,14 @@ class EBP_Shortcode {
 			'hover_grow'       => $defaults['hover_grow'],
 			'padding_v'        => $defaults['padding_v'],
 			'padding_h'        => $defaults['padding_h'],
+			'button_width'     => $defaults['button_width'],
 			'icon_type'        => $defaults['icon_type'],
 			'icon'             => $defaults['icon'],
 			'icon_media_url'   => $defaults['icon_media_url'],
 			'icon_size'        => $defaults['icon_size'],
 			'icon_spacing'     => $defaults['icon_spacing'],
 			'icon_position'    => $defaults['icon_position'],
+			'icon_color'       => $defaults['icon_color'],
 			'border_width'     => $defaults['border_width'],
 			'border_style'     => $defaults['border_style'],
 			'border_color'     => $defaults['border_color'],
@@ -73,6 +75,7 @@ class EBP_Shortcode {
 			'email_subject'    => $defaults['email_subject'],
 			'email_body'       => $defaults['email_body'],
 			'media_url'        => $defaults['media_url'],
+			'content_id'       => $defaults['content_id'],
 			'target'           => $defaults['target'],
 		), $atts, 'eifelhoster_button' );
 
@@ -106,6 +109,9 @@ class EBP_Shortcode {
 			$href = esc_attr( $mailto );
 		} elseif ( 'media' === $a['link_type'] ) {
 			$href = esc_url( $a['media_url'] );
+		} elseif ( 'content' === $a['link_type'] ) {
+			$permalink = get_permalink( absint( $a['content_id'] ) );
+			$href      = $permalink ? esc_url( $permalink ) : '#';
 		}
 
 		// ---- Build inline style ----
@@ -129,6 +135,9 @@ class EBP_Shortcode {
 		$inline['background-color'] = ebp_sanitize_css_color( $a['bg_color'] );
 		$inline['color']            = ebp_sanitize_css_color( $a['text_color'] );
 		$inline['padding']          = absint( $a['padding_v'] ) . 'px ' . absint( $a['padding_h'] ) . 'px';
+		if ( absint( $a['button_width'] ) > 0 ) {
+			$inline['width'] = absint( $a['button_width'] ) . 'px';
+		}
 		$inline['border-width']     = absint( $a['border_width'] ) . 'px';
 		$inline['border-style']     = in_array( $a['border_style'], array( 'solid','dashed','dotted','double','none' ), true )
 			? $a['border_style'] : 'solid';
@@ -168,9 +177,10 @@ class EBP_Shortcode {
 		// ---- Build icon HTML ----
 		$icon_html = '';
 		if ( 'dashicon' === $a['icon_type'] && ! empty( $a['icon'] ) ) {
-			$sz        = absint( $a['icon_size'] );
-			$icon_html = '<span class="dashicons dashicons-' . esc_attr( $a['icon'] ) . '" '
-				. 'style="font-size:' . $sz . 'px;width:' . $sz . 'px;height:' . $sz . 'px;" aria-hidden="true"></span>';
+			$sz          = absint( $a['icon_size'] );
+			$icon_color  = ! empty( $a['icon_color'] ) ? 'color:' . ebp_sanitize_css_color( $a['icon_color'] ) . ';' : '';
+			$icon_html   = '<span class="dashicons dashicons-' . esc_attr( $a['icon'] ) . '" '
+				. 'style="font-size:' . $sz . 'px;width:' . $sz . 'px;height:' . $sz . 'px;' . $icon_color . '" aria-hidden="true"></span>';
 		} elseif ( 'media' === $a['icon_type'] && ! empty( $a['icon_media_url'] ) ) {
 			$sz        = absint( $a['icon_size'] );
 			$icon_html = '<img src="' . esc_url( $a['icon_media_url'] ) . '" '

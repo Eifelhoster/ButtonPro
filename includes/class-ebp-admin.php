@@ -50,6 +50,8 @@ class EBP_Admin {
 		wp_localize_script( 'ebp-admin', 'ebpAdminData', array(
 			'dashicons' => ebp_get_dashicons(),
 			'defaults'  => ebp_get_defaults(),
+			'ajaxurl'   => admin_url( 'admin-ajax.php' ),
+			'nonce'     => wp_create_nonce( 'ebp_search_content' ),
 		) );
 	}
 
@@ -73,6 +75,7 @@ class EBP_Admin {
 			'shadow_spread', 'shadow_color', 'url', 'email',
 			'email_subject', 'media_url', 'bg_color', 'bg_hover_color',
 			'text_color', 'text_hover_color', 'hover_grow', 'padding_v', 'padding_h',
+			'button_width', 'icon_color', 'content_id',
 		);
 		foreach ( $text_fields as $field ) {
 			$clean[ $field ] = isset( $input[ $field ] ) ? sanitize_text_field( $input[ $field ] ) : '';
@@ -89,7 +92,7 @@ class EBP_Admin {
 			'icon_type'     => array( 'none', 'dashicon', 'media' ),
 			'icon_position' => array( 'before', 'after' ),
 			'border_style'  => array( 'solid', 'dashed', 'dotted', 'double', 'none' ),
-			'link_type'     => array( 'url', 'email', 'media' ),
+			'link_type'     => array( 'url', 'email', 'media', 'content' ),
 			'target'        => array( '_self', '_blank' ),
 		);
 		foreach ( $select_fields as $field => $allowed ) {
@@ -182,6 +185,16 @@ class EBP_Admin {
 								<?php esc_html_e( 'Links/Rechts:', 'eifelhoster-buttons-pro' ); ?>
 								<input type="number" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[padding_h]"
 									value="<?php echo esc_attr( $d['padding_h'] ); ?>" min="0" max="200" class="small-text" />
+							</td>
+						</tr>
+						<tr>
+							<th><?php esc_html_e( 'Gesamtbreite (px)', 'eifelhoster-buttons-pro' ); ?></th>
+							<td>
+								<input type="number" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[button_width]"
+									value="<?php echo esc_attr( $d['button_width'] ); ?>" min="0" max="2000" class="small-text" />
+								<span class="description">
+									<?php esc_html_e( '0 = automatische Breite', 'eifelhoster-buttons-pro' ); ?>
+								</span>
 							</td>
 						</tr>
 					</table>
@@ -326,6 +339,17 @@ class EBP_Admin {
 								</label>
 							</td>
 						</tr>
+						<tr>
+							<th><?php esc_html_e( 'Symbolfarbe', 'eifelhoster-buttons-pro' ); ?></th>
+							<td>
+								<input type="text" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[icon_color]"
+									value="<?php echo esc_attr( $d['icon_color'] ); ?>" class="ebp-color-picker"
+									data-default-color="" />
+								<span class="description">
+									<?php esc_html_e( 'Leer = Farbe vom Button-Text übernehmen', 'eifelhoster-buttons-pro' ); ?>
+								</span>
+							</td>
+						</tr>
 					</table>
 				</div>
 
@@ -408,7 +432,7 @@ class EBP_Admin {
 										<td colspan="3">
 											<input type="text" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[shadow_color]"
 												value="<?php echo esc_attr( $d['shadow_color'] ); ?>"
-												class="regular-text" placeholder="rgba(0,0,0,0.3)" />
+												class="ebp-color-picker" />
 										</td>
 									</tr>
 								</table>
@@ -440,6 +464,35 @@ class EBP_Admin {
 										value="media" <?php checked( 'media', $d['link_type'] ); ?> class="ebp-link-type-radio" />
 									<?php esc_html_e( 'Mediendatei', 'eifelhoster-buttons-pro' ); ?>
 								</label>
+								&nbsp;
+								<label>
+									<input type="radio" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[link_type]"
+										value="content" <?php checked( 'content', $d['link_type'] ); ?> class="ebp-link-type-radio" />
+									<?php esc_html_e( 'Inhalt (Seite/Beitrag)', 'eifelhoster-buttons-pro' ); ?>
+								</label>
+							</td>
+						</tr>
+						<tr id="ebp-admin-row-content" style="<?php echo 'content' !== $d['link_type'] ? 'display:none' : ''; ?>">
+							<th><?php esc_html_e( 'Inhalt auswählen', 'eifelhoster-buttons-pro' ); ?></th>
+							<td>
+								<input type="text" id="ebp-admin-content-search"
+									class="regular-text"
+									placeholder="<?php esc_attr_e( 'Seite/Beitrag suchen…', 'eifelhoster-buttons-pro' ); ?>" />
+								<input type="hidden" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[content_id]"
+									id="ebp-admin-content-id" value="<?php echo esc_attr( $d['content_id'] ); ?>" />
+								<div id="ebp-admin-content-results" class="ebp-content-results"></div>
+								<div id="ebp-admin-content-selected" class="ebp-content-selected-info">
+									<?php
+									if ( ! empty( $d['content_id'] ) && absint( $d['content_id'] ) > 0 ) {
+										$sel_post = get_post( absint( $d['content_id'] ) );
+										if ( $sel_post ) {
+											echo '<span class="dashicons dashicons-yes" style="color:#2271b1"></span> ';
+											echo esc_html( $sel_post->post_title );
+											echo ' <a href="' . esc_url( get_permalink( $sel_post->ID ) ) . '" target="_blank" rel="noopener">' . esc_html__( '(Ansehen)', 'eifelhoster-buttons-pro' ) . '</a>';
+										}
+									}
+									?>
+								</div>
 							</td>
 						</tr>
 						<tr>

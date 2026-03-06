@@ -53,6 +53,51 @@
 			$( '#ebp-panel-' + tab ).addClass( 'active' );
 		} );
 
+		// Content search (live AJAX).
+		var contentSearchTimer = null;
+		$( document ).on( 'input', '#ebp-f-content-search', function () {
+			var q = $( this ).val();
+			clearTimeout( contentSearchTimer );
+			if ( q.length < 2 ) {
+				$( '#ebp-dlg-content-results' ).empty().hide();
+				return;
+			}
+			contentSearchTimer = setTimeout( function () {
+				$.get( ebpData.ajaxurl, {
+					action: 'ebp_search_content',
+					nonce : ebpData.nonce,
+					q     : q,
+				}, function ( res ) {
+					var $r = $( '#ebp-dlg-content-results' ).empty().show();
+					if ( res.success && res.data.length ) {
+						res.data.forEach( function ( item ) {
+							$( '<div class="ebp-content-result-item">' )
+								.text( item.title + ' (' + item.type + ')' )
+								.data( 'id',  item.id )
+								.data( 'url', item.url )
+								.data( 'title', item.title )
+								.appendTo( $r );
+						} );
+					} else {
+						$r.html( '<em style="color:#666;font-size:12px">Keine Ergebnisse</em>' );
+					}
+				} );
+			}, 300 );
+		} );
+
+		$( document ).on( 'click', '#ebp-dlg-content-results .ebp-content-result-item', function () {
+			var id    = $( this ).data( 'id' );
+			var title = $( this ).data( 'title' );
+			$( '#ebp-f-content-id' ).val( id );
+			$( '#ebp-f-content-search' ).val( title );
+			$( '#ebp-dlg-content-results' ).empty().hide();
+			$( '#ebp-dlg-content-selected' ).html(
+				'<span class="dashicons dashicons-yes" style="color:#2271b1;vertical-align:middle"></span> ' +
+				ebpEscHtml( title )
+			);
+			ebpUpdatePreview();
+		} );
+
 		// Close button / overlay click.
 		$( '#ebp-modal-close, #ebp-btn-cancel' ).on( 'click', ebpCloseDialog );
 		$( '#ebp-modal-overlay' ).on( 'click', function ( e ) {
@@ -165,6 +210,7 @@
 		$( '#ebp-f-font-italic' ).prop( 'checked', d.font_italic === '1' );
 		$( '#ebp-f-padding-v' ).val( d.padding_v );
 		$( '#ebp-f-padding-h' ).val( d.padding_h );
+		$( '#ebp-f-button-width' ).val( d.button_width );
 
 		// Colors tab.
 		ebpSetColor( '#ebp-f-bg-color',         d.bg_color );
@@ -183,6 +229,9 @@
 		$( '#ebp-f-icon-size' ).val( d.icon_size );
 		$( '#ebp-f-icon-spacing' ).val( d.icon_spacing );
 		$( 'input[name="ebp-icon-pos"][value="' + d.icon_position + '"]' ).prop( 'checked', true );
+
+		// Icon colour.
+		ebpSetColor( '#ebp-f-icon-color', d.icon_color || '' );
 
 		// Update icon preview if a default dashicon is set.
 		if ( d.icon_type === 'dashicon' && d.icon ) {
@@ -213,7 +262,7 @@
 		$( '#ebp-f-shadow-y' ).val( d.shadow_y );
 		$( '#ebp-f-shadow-blur' ).val( d.shadow_blur );
 		$( '#ebp-f-shadow-spread' ).val( d.shadow_spread );
-		$( '#ebp-f-shadow-color' ).val( d.shadow_color );
+		ebpSetColor( '#ebp-f-shadow-color', d.shadow_color );
 
 		// Link tab.
 		$( 'input[name="ebp-link-type"][value="' + d.link_type + '"]' ).prop( 'checked', true );
@@ -224,6 +273,10 @@
 		$( '#ebp-f-email-body' ).val( d.email_body );
 		$( '#ebp-f-media-url' ).val( d.media_url );
 		$( '#ebp-dlg-media-preview' ).html( '' );
+		$( '#ebp-f-content-id' ).val( d.content_id || '0' );
+		$( '#ebp-f-content-search' ).val( '' );
+		$( '#ebp-dlg-content-results' ).empty().hide();
+		$( '#ebp-dlg-content-selected' ).html( '' );
 		$( 'input[name="ebp-target"][value="' + d.target + '"]' ).prop( 'checked', true );
 
 		// Reset to first tab.
@@ -253,6 +306,7 @@
 		$( '#ebp-dlg-row-url' ).toggle( type === 'url' );
 		$( '#ebp-dlg-row-email' ).toggle( type === 'email' );
 		$( '#ebp-dlg-row-media' ).toggle( type === 'media' );
+		$( '#ebp-dlg-row-content' ).toggle( type === 'content' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -302,12 +356,14 @@
 			hover_grow       : $( '#ebp-f-hover-grow' ).val(),
 			padding_v        : $( '#ebp-f-padding-v' ).val(),
 			padding_h        : $( '#ebp-f-padding-h' ).val(),
+			button_width     : $( '#ebp-f-button-width' ).val(),
 			icon_type        : iconType,
 			icon             : $( '#ebp-f-icon' ).val(),
 			icon_media_url   : $( '#ebp-f-icon-media-url' ).val(),
 			icon_size        : $( '#ebp-f-icon-size' ).val(),
 			icon_spacing     : $( '#ebp-f-icon-spacing' ).val(),
 			icon_position    : iconPos,
+			icon_color       : ebpGetColor( '#ebp-f-icon-color' ),
 			border_width     : $( '#ebp-f-border-width' ).val(),
 			border_style     : $( '#ebp-f-border-style' ).val(),
 			border_color     : ebpGetColor( '#ebp-f-border-color' ),
@@ -317,13 +373,14 @@
 			shadow_y         : $( '#ebp-f-shadow-y' ).val(),
 			shadow_blur      : $( '#ebp-f-shadow-blur' ).val(),
 			shadow_spread    : $( '#ebp-f-shadow-spread' ).val(),
-			shadow_color     : $( '#ebp-f-shadow-color' ).val(),
+			shadow_color     : ebpGetColor( '#ebp-f-shadow-color' ),
 			link_type        : linkType,
 			url              : $( '#ebp-f-url' ).val(),
 			email            : $( '#ebp-f-email' ).val(),
 			email_subject    : $( '#ebp-f-email-subject' ).val(),
 			email_body       : $( '#ebp-f-email-body' ).val(),
 			media_url        : $( '#ebp-f-media-url' ).val(),
+			content_id       : $( '#ebp-f-content-id' ).val(),
 			target           : target,
 		};
 	}
@@ -387,14 +444,23 @@
 		}
 
 		$btn.css( css );
+		if ( parseInt( attrs.button_width, 10 ) > 0 ) {
+			$btn.css( 'width', parseInt( attrs.button_width, 10 ) + 'px' );
+		} else {
+			$btn.css( 'width', '' );
+		}
 		$( '#ebp-preview-btn .ebp-preview-text' ).text( attrs.text || 'Button' );
 
 		// Icon.
 		var iconHtml = '';
 		if ( attrs.icon_type === 'dashicon' && attrs.icon ) {
-			var sz = parseInt( attrs.icon_size, 10 ) || 20;
+			var sz        = parseInt( attrs.icon_size, 10 ) || 20;
+			var iconStyle = 'font-size:' + sz + 'px;width:' + sz + 'px;height:' + sz + 'px;';
+			if ( attrs.icon_color ) {
+				iconStyle += 'color:' + attrs.icon_color + ';';
+			}
 			iconHtml = '<span class="dashicons dashicons-' + ebpEscHtml( attrs.icon ) + '" ' +
-				'style="font-size:' + sz + 'px;width:' + sz + 'px;height:' + sz + 'px"></span>';
+				'style="' + iconStyle + '"></span>';
 		} else if ( attrs.icon_type === 'media' && attrs.icon_media_url ) {
 			var sz2 = parseInt( attrs.icon_size, 10 ) || 20;
 			iconHtml = '<img src="' + ebpEscHtml( attrs.icon_media_url ) + '" ' +
