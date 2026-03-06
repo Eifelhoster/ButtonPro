@@ -89,6 +89,27 @@
 
 		// Initial preview.
 		updateAdminPreview();
+
+		// ---- Documentation modal ----
+		$( '#ebp-open-docs' ).on( 'click', function () {
+			$( '#ebp-docs-overlay' ).fadeIn( 150 );
+			$( document ).on( 'keydown.ebpDocs', function ( e ) {
+				if ( e.key === 'Escape' ) {
+					$( '#ebp-docs-overlay' ).fadeOut( 150 );
+					$( document ).off( 'keydown.ebpDocs' );
+				}
+			} );
+		} );
+		$( '#ebp-docs-close' ).on( 'click', function () {
+			$( '#ebp-docs-overlay' ).fadeOut( 150 );
+			$( document ).off( 'keydown.ebpDocs' );
+		} );
+		$( '#ebp-docs-overlay' ).on( 'click', function ( e ) {
+			if ( e.target === this ) {
+				$( this ).fadeOut( 150 );
+				$( document ).off( 'keydown.ebpDocs' );
+			}
+		} );
 	} );
 
 	// -------------------------------------------------------------------------

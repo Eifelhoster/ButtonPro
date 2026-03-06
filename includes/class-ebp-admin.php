@@ -486,7 +486,127 @@ class EBP_Admin {
 						'<a href="https://eifelhoster.de" target="_blank" rel="noopener">eifelhoster.de · Michael Krämer</a>'
 					); ?>
 				</p>
+				<button type="button" id="ebp-open-docs" class="button ebp-docs-btn">
+					<span class="dashicons dashicons-book-alt" style="vertical-align:text-bottom;margin-right:4px"></span>
+					<?php esc_html_e( 'Dokumentation', 'eifelhoster-buttons-pro' ); ?>
+				</button>
 			</div>
+
+			<!-- ===== Documentation Modal ===== -->
+			<div id="ebp-docs-overlay" role="dialog" aria-modal="true" aria-labelledby="ebp-docs-title" style="display:none">
+				<div id="ebp-docs-modal">
+					<div id="ebp-docs-header">
+						<?php
+						$logo_local = EBP_PLUGIN_DIR . 'assets/images/eifelhoster-logo.png';
+						$logo_url   = file_exists( $logo_local )
+							? esc_url( EBP_PLUGIN_URL . 'assets/images/eifelhoster-logo.png' )
+							: 'https://github.com/user-attachments/assets/d7fe3332-7aeb-4c44-be3a-68838ddff688';
+						?>
+						<img src="<?php echo esc_url( $logo_url ); ?>"
+							alt="eifelhoster.de" id="ebp-docs-logo" />
+						<button type="button" id="ebp-docs-close" aria-label="<?php esc_attr_e( 'Schließen', 'eifelhoster-buttons-pro' ); ?>">
+							<span class="dashicons dashicons-no-alt"></span>
+						</button>
+					</div>
+
+					<div id="ebp-docs-body">
+						<h2 id="ebp-docs-title"><?php esc_html_e( 'ButtonPro – Dokumentation', 'eifelhoster-buttons-pro' ); ?></h2>
+
+						<p class="ebp-docs-intro">
+							<?php esc_html_e( 'Willkommen bei Eifelhoster Buttons Pro! Dieses Plugin ermöglicht es Ihnen, ansprechende Buttons direkt im WordPress Classic Editor zu erstellen und einzufügen. Hier finden Sie eine Übersicht aller Funktionen.', 'eifelhoster-buttons-pro' ); ?>
+						</p>
+
+						<!-- Section: Getting Started -->
+						<h3><?php esc_html_e( '🚀 Erste Schritte', 'eifelhoster-buttons-pro' ); ?></h3>
+						<div class="ebp-docs-section">
+							<p><?php esc_html_e( 'Um einen Button in Ihren Beitrag oder Ihre Seite einzufügen, gehen Sie wie folgt vor:', 'eifelhoster-buttons-pro' ); ?></p>
+							<ol>
+								<li><?php esc_html_e( 'Öffnen Sie einen Beitrag oder eine Seite im Classic Editor.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Klicken Sie in der Editor-Werkzeugleiste auf das Button-Symbol „Eifelhoster Button".', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Ein Dialogfenster öffnet sich, in dem Sie den Button nach Ihren Wünschen gestalten können.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Klicken Sie auf „Button einfügen" – der Button erscheint sofort im Editor.', 'eifelhoster-buttons-pro' ); ?></li>
+							</ol>
+						</div>
+
+						<!-- Section: Editing -->
+						<h3><?php esc_html_e( '✏️ Button bearbeiten', 'eifelhoster-buttons-pro' ); ?></h3>
+						<div class="ebp-docs-section">
+							<p><?php esc_html_e( 'Einen vorhandenen Button können Sie ganz einfach anpassen:', 'eifelhoster-buttons-pro' ); ?></p>
+							<ol>
+								<li><?php esc_html_e( 'Klicken Sie im Editor auf den bestehenden Button.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Klicken Sie erneut auf das Button-Symbol in der Werkzeugleiste.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Das Dialogfenster öffnet sich mit den vorhandenen Einstellungen. Nehmen Sie Ihre Änderungen vor und klicken Sie auf „Button einfügen".', 'eifelhoster-buttons-pro' ); ?></li>
+							</ol>
+						</div>
+
+						<!-- Section: Dialog Tabs -->
+						<h3><?php esc_html_e( '🎨 Gestaltungsoptionen im Dialog', 'eifelhoster-buttons-pro' ); ?></h3>
+						<div class="ebp-docs-section">
+							<table class="ebp-docs-table">
+								<thead>
+									<tr>
+										<th><?php esc_html_e( 'Bereich', 'eifelhoster-buttons-pro' ); ?></th>
+										<th><?php esc_html_e( 'Was können Sie einstellen?', 'eifelhoster-buttons-pro' ); ?></th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr>
+										<td><strong><?php esc_html_e( 'Text & Schrift', 'eifelhoster-buttons-pro' ); ?></strong></td>
+										<td><?php esc_html_e( 'Beschriftung des Buttons, Schriftart, Schriftgröße, Fett/Kursiv-Formatierung sowie der Innenabstand (Padding).', 'eifelhoster-buttons-pro' ); ?></td>
+									</tr>
+									<tr>
+										<td><strong><?php esc_html_e( 'Farben & Hover', 'eifelhoster-buttons-pro' ); ?></strong></td>
+										<td><?php esc_html_e( 'Hintergrundfarbe und Textfarbe des Buttons, sowie deren Farbe beim Überfahren mit der Maus (Hover). Dazu ein Skalierungseffekt beim Hover (Grow).', 'eifelhoster-buttons-pro' ); ?></td>
+									</tr>
+									<tr>
+										<td><strong><?php esc_html_e( 'Symbol (Icon)', 'eifelhoster-buttons-pro' ); ?></strong></td>
+										<td><?php esc_html_e( 'Wählen Sie ein Symbol aus der WordPress-Dashicons-Bibliothek oder laden Sie ein eigenes Bild hoch. Das Symbol kann vor oder hinter dem Text platziert werden.', 'eifelhoster-buttons-pro' ); ?></td>
+									</tr>
+									<tr>
+										<td><strong><?php esc_html_e( 'Rahmen & Schatten', 'eifelhoster-buttons-pro' ); ?></strong></td>
+										<td><?php esc_html_e( 'Stärke, Stil, Farbe und Radius des Rahmens. Aktivieren Sie optional einen Schlagschatten und passen Sie dessen Offset, Unschärfe und Farbe an.', 'eifelhoster-buttons-pro' ); ?></td>
+									</tr>
+									<tr>
+										<td><strong><?php esc_html_e( 'Link & Ziel', 'eifelhoster-buttons-pro' ); ?></strong></td>
+										<td><?php esc_html_e( 'Verknüpfen Sie den Button mit einer URL, einer E-Mail-Adresse oder einer Mediendatei. Bestimmen Sie, ob der Link im selben oder in einem neuen Fenster geöffnet wird.', 'eifelhoster-buttons-pro' ); ?></td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+
+						<!-- Section: Default Values -->
+						<h3><?php esc_html_e( '⚙️ Standardwerte (diese Seite)', 'eifelhoster-buttons-pro' ); ?></h3>
+						<div class="ebp-docs-section">
+							<p><?php esc_html_e( 'Auf dieser Einstellungsseite legen Sie die Standardwerte für alle neuen Buttons fest. Jedes Mal, wenn Sie einen neuen Button über den Editor-Dialog erstellen, werden diese Werte als Ausgangspunkt verwendet. Sie können alle Werte im Dialog natürlich individuell anpassen.', 'eifelhoster-buttons-pro' ); ?></p>
+						</div>
+
+						<!-- Section: Shortcode -->
+						<h3><?php esc_html_e( '🔧 Shortcode', 'eifelhoster-buttons-pro' ); ?></h3>
+						<div class="ebp-docs-section">
+							<p><?php esc_html_e( 'Buttons werden als Shortcode in Ihren Beiträgen gespeichert. Sie können den Shortcode auch manuell in den Texteditor eingeben:', 'eifelhoster-buttons-pro' ); ?></p>
+							<code class="ebp-docs-code">[eifelhoster_button text="Klick mich" url="https://example.com" bg_color="#007bff" text_color="#ffffff"]</code>
+							<p style="margin-top:10px"><?php esc_html_e( 'Alle Gestaltungsoptionen aus dem Dialog sind auch als Shortcode-Parameter verfügbar.', 'eifelhoster-buttons-pro' ); ?></p>
+						</div>
+
+						<!-- Section: Contact -->
+						<div id="ebp-docs-contact">
+							<h3><?php esc_html_e( '📞 Kontakt & Support', 'eifelhoster-buttons-pro' ); ?></h3>
+							<address>
+								<strong>Michael Krämer</strong><br>
+								<?php esc_html_e( 'Founder & CEO eifelhoster.de', 'eifelhoster-buttons-pro' ); ?><br>
+								<?php esc_html_e( 'Webhosting, Webdesign und Service', 'eifelhoster-buttons-pro' ); ?><br><br>
+								Dorfstr. 24<br>
+								54597 Roth bei Prüm<br><br>
+								<?php esc_html_e( 'Fon:', 'eifelhoster-buttons-pro' ); ?> <a href="tel:+4965526009995">+49 6552 6009995</a><br>
+								<?php esc_html_e( 'Fax:', 'eifelhoster-buttons-pro' ); ?> +49 6552 6009996<br>
+								<?php esc_html_e( 'Mobil:', 'eifelhoster-buttons-pro' ); ?> <a href="tel:+491794773134">+49 179 4773134</a><br>
+								<?php esc_html_e( 'Web:', 'eifelhoster-buttons-pro' ); ?> <a href="https://eifelhoster.de" target="_blank" rel="noopener">www.eifelhoster.de</a><br>
+								<?php esc_html_e( 'Mail:', 'eifelhoster-buttons-pro' ); ?> <a href="mailto:mk@michael-kraemer.eu">mk@michael-kraemer.eu</a>
+							</address>
+						</div>
+					</div><!-- #ebp-docs-body -->
+				</div><!-- #ebp-docs-modal -->
+			</div><!-- #ebp-docs-overlay -->
 		</div><!-- .wrap -->
 		<?php
 	}

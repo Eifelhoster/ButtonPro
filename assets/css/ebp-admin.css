@@ -104,6 +104,181 @@
 	border-top: 1px solid #dcdcde;
 	color: #646970;
 	font-size: 13px;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 10px;
+}
+.ebp-admin-footer p {
+	margin: 0;
+	flex: 1 1 auto;
+}
+.ebp-docs-btn {
+	flex-shrink: 0;
+}
+
+/* ============================================================
+   Documentation Modal
+   ============================================================ */
+
+#ebp-docs-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .6);
+	z-index: 100100;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#ebp-docs-modal {
+	background: #fff;
+	border-radius: 6px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, .35);
+	width: 720px;
+	max-width: 95vw;
+	max-height: 90vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+#ebp-docs-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 20px;
+	background: #f6f7f7;
+	border-bottom: 1px solid #dcdcde;
+	flex-shrink: 0;
+}
+
+#ebp-docs-logo {
+	height: 48px;
+	width: auto;
+	display: block;
+}
+
+#ebp-docs-close {
+	background: none;
+	border: none;
+	cursor: pointer;
+	padding: 0;
+	color: #50575e;
+	line-height: 1;
+}
+#ebp-docs-close:hover {
+	color: #d63638;
+}
+#ebp-docs-close .dashicons {
+	font-size: 24px;
+	width: 24px;
+	height: 24px;
+}
+
+#ebp-docs-body {
+	overflow-y: auto;
+	flex: 1;
+	padding: 24px 28px;
+}
+
+#ebp-docs-body h2 {
+	margin-top: 0;
+	margin-bottom: 8px;
+	font-size: 18px;
+	color: #1d2327;
+}
+
+#ebp-docs-body h3 {
+	font-size: 14px;
+	color: #2271b1;
+	margin-top: 24px;
+	margin-bottom: 8px;
+	padding-bottom: 4px;
+	border-bottom: 1px solid #e8e8e8;
+}
+
+.ebp-docs-intro {
+	color: #50575e;
+	margin-bottom: 4px;
+}
+
+.ebp-docs-section {
+	background: #f9f9f9;
+	border: 1px solid #e8e8e8;
+	border-radius: 4px;
+	padding: 12px 16px;
+}
+.ebp-docs-section ol,
+.ebp-docs-section ul {
+	margin: 6px 0 0 18px;
+	padding: 0;
+}
+.ebp-docs-section li {
+	margin-bottom: 4px;
+}
+.ebp-docs-section p {
+	margin: 0 0 6px;
+}
+
+.ebp-docs-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+.ebp-docs-table th,
+.ebp-docs-table td {
+	text-align: left;
+	padding: 8px 10px;
+	font-size: 13px;
+	border-bottom: 1px solid #e8e8e8;
+	vertical-align: top;
+}
+.ebp-docs-table th {
+	background: #f0f0f1;
+	font-weight: 600;
+	color: #2c3338;
+	width: 180px;
+}
+.ebp-docs-table tr:last-child td,
+.ebp-docs-table tr:last-child th {
+	border-bottom: none;
+}
+
+.ebp-docs-code {
+	display: block;
+	background: #1d2327;
+	color: #a3e4a3;
+	padding: 10px 14px;
+	border-radius: 4px;
+	font-size: 12px;
+	overflow-x: auto;
+	white-space: nowrap;
+	margin-top: 8px;
+}
+
+#ebp-docs-contact {
+	margin-top: 24px;
+	background: #f0f6fc;
+	border: 1px solid #c3d9ee;
+	border-radius: 4px;
+	padding: 16px 20px;
+}
+#ebp-docs-contact h3 {
+	margin-top: 0;
+	border-bottom-color: #c3d9ee;
+}
+#ebp-docs-contact address {
+	font-style: normal;
+	font-size: 13px;
+	line-height: 1.7;
+	color: #2c3338;
+}
+#ebp-docs-contact a {
+	color: #2271b1;
+	text-decoration: none;
+}
+#ebp-docs-contact a:hover {
+	text-decoration: underline;
 }
 
 /* ============================================================
