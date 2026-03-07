@@ -1,7 +1,7 @@
 /**
  * Admin settings page JS for Eifelhoster Buttons Pro.
  */
-/* global jQuery, ebpAdminData */
+/* global jQuery, ebpAdminData, wp */
 (function ( $ ) {
 	'use strict';
 
@@ -55,6 +55,12 @@
 			updateAdminPreview();
 		} );
 
+		// ---- Link type radio toggle ----
+		$( '.ebp-link-type-radio' ).on( 'change', function () {
+			var val = $( this ).val();
+			$( '#ebp-admin-row-content' ).toggle( val === 'content' );
+		} );
+
 		// ---- Media picker for icon ----
 		var mediaFrameIcon = null;
 		$( '#ebp-select-icon-media' ).on( 'click', function () {
@@ -77,6 +83,53 @@
 				updateAdminPreview();
 			} );
 			mediaFrameIcon.open();
+		} );
+
+		// ---- Content search (admin settings) ----
+		var adminContentSearchTimer = null;
+		$( '#ebp-admin-content-search' ).on( 'input', function () {
+			var val = $( this ).val();
+			clearTimeout( adminContentSearchTimer );
+			if ( val.length < 2 ) {
+				$( '#ebp-admin-content-results' ).empty().hide();
+				return;
+			}
+			adminContentSearchTimer = setTimeout( function () {
+				$.post( ebpAdminData.ajaxurl, {
+					action : 'ebp_search_content',
+					nonce  : ebpAdminData.nonce,
+					search : val,
+				}, function ( response ) {
+					var $results = $( '#ebp-admin-content-results' );
+					$results.empty().show().css( { border: '1px solid #ddd', maxHeight: '160px', overflowY: 'auto' } );
+					if ( ! response.success || ! response.data.length ) {
+						$results.html( '<p style="padding:6px;margin:0;color:#888">Keine Ergebnisse</p>' );
+						return;
+					}
+					$.each( response.data, function ( i, item ) {
+						var $row = $( '<div>' )
+							.css( { padding: '6px 8px', cursor: 'pointer', borderBottom: '1px solid #eee' } )
+							.html(
+								'<strong>' + ebpEscHtml( item.title ) + '</strong>' +
+								' <span style="color:#888;font-size:11px">(' + ebpEscHtml( item.type ) + ')</span>'
+							)
+							.data( 'id', item.id )
+							.data( 'title', item.title )
+							.on( 'mouseenter', function () { $( this ).css( 'background', '#f0f0f0' ); } )
+							.on( 'mouseleave', function () { $( this ).css( 'background', '' ); } )
+							.on( 'click', function () {
+								$( '#ebp-admin-content-id' ).val( $( this ).data( 'id' ) );
+								$( '#ebp-admin-content-search' ).val( $( this ).data( 'title' ) );
+								$( '#ebp-admin-content-selected' ).html(
+									'<span class="dashicons dashicons-yes" style="color:green;vertical-align:middle"></span> ' +
+									ebpEscHtml( $( this ).data( 'title' ) )
+								);
+								$results.hide().empty();
+							} );
+						$results.append( $row );
+					} );
+				} );
+			}, 300 );
 		} );
 
 		// ---- Dashicon grid (admin settings page) ----
@@ -145,26 +198,27 @@
 		var $preview = $( '#ebp-preview-link' );
 		if ( ! $preview.length ) { return; }
 
-		var fontFamily  = $( 'input[name$="[font_family]"]' ).val()  || 'inherit';
-		var fontSize    = parseInt( $( 'input[name$="[font_size]"]' ).val(), 10 )    || 16;
-		var fontBold    = $( 'input[name$="[font_bold]"]' ).is( ':checked' );
-		var fontItalic  = $( 'input[name$="[font_italic]"]' ).is( ':checked' );
-		var bgColor     = $( 'input[name$="[bg_color]"]' ).val()     || '#007bff';
-		var textColor   = $( 'input[name$="[text_color]"]' ).val()   || '#ffffff';
-		var paddingV    = parseInt( $( 'input[name$="[padding_v]"]' ).val(), 10 )    || 10;
-		var paddingH    = parseInt( $( 'input[name$="[padding_h]"]' ).val(), 10 )    || 20;
-		var borderW     = parseInt( $( 'input[name$="[border_width]"]' ).val(), 10 ) || 0;
-		var borderStyle = $( 'select[name$="[border_style]"]' ).val() || 'solid';
-		var borderColor = $( 'input[name$="[border_color]"]' ).val() || '#000000';
-		var borderRadius= parseInt( $( 'input[name$="[border_radius]"]' ).val(), 10 )|| 4;
-		var shadowOn    = $( '#ebp-shadow-enabled' ).is( ':checked' );
-		var shadowX     = parseInt( $( 'input[name$="[shadow_x]"]' ).val(), 10 )     || 0;
-		var shadowY     = parseInt( $( 'input[name$="[shadow_y]"]' ).val(), 10 )     || 2;
-		var shadowBlur  = parseInt( $( 'input[name$="[shadow_blur]"]' ).val(), 10 )  || 4;
-		var shadowSprd  = parseInt( $( 'input[name$="[shadow_spread]"]' ).val(), 10 )|| 0;
-		var shadowColor = $( 'input[name$="[shadow_color]"]' ).val() || 'rgba(0,0,0,0.3)';
-		var iconType    = $( 'input[name$="[icon_type]"]:checked' ).val()   || 'none';
-		var iconSpacing = parseInt( $( 'input[name$="[icon_spacing]"]' ).val(), 10 ) || 8;
+		var fontFamily   = $( 'input[name$="[font_family]"]' ).val()  || 'inherit';
+		var fontSize     = parseInt( $( 'input[name$="[font_size]"]' ).val(), 10 )    || 16;
+		var fontBold     = $( 'input[name$="[font_bold]"]' ).is( ':checked' );
+		var fontItalic   = $( 'input[name$="[font_italic]"]' ).is( ':checked' );
+		var buttonWidth  = parseInt( $( 'input[name$="[button_width]"]' ).val(), 10 ) || 0;
+		var bgColor      = $( 'input[name$="[bg_color]"]' ).val()     || '#007bff';
+		var textColor    = $( 'input[name$="[text_color]"]' ).val()   || '#ffffff';
+		var paddingV     = parseInt( $( 'input[name$="[padding_v]"]' ).val(), 10 )    || 10;
+		var paddingH     = parseInt( $( 'input[name$="[padding_h]"]' ).val(), 10 )    || 20;
+		var borderW      = parseInt( $( 'input[name$="[border_width]"]' ).val(), 10 ) || 0;
+		var borderStyle  = $( 'select[name$="[border_style]"]' ).val() || 'none';
+		var borderColor  = $( 'input[name$="[border_color]"]' ).val() || '#000000';
+		var borderRadius = parseInt( $( 'input[name$="[border_radius]"]' ).val(), 10 ) || 4;
+		var shadowOn     = $( '#ebp-shadow-enabled' ).is( ':checked' );
+		var shadowX      = parseInt( $( 'input[name$="[shadow_x]"]' ).val(), 10 )     || 0;
+		var shadowY      = parseInt( $( 'input[name$="[shadow_y]"]' ).val(), 10 )     || 2;
+		var shadowBlur   = parseInt( $( 'input[name$="[shadow_blur]"]' ).val(), 10 )  || 4;
+		var shadowSprd   = parseInt( $( 'input[name$="[shadow_spread]"]' ).val(), 10 ) || 0;
+		var shadowColor  = $( 'input[name$="[shadow_color]"]' ).val() || '#777777';
+		var iconType     = $( 'input[name$="[icon_type]"]:checked' ).val()   || 'none';
+		var iconSpacing  = parseInt( $( 'input[name$="[icon_spacing]"]' ).val(), 10 ) || 24;
 
 		var css = {
 			'display'         : 'inline-flex',
@@ -187,6 +241,7 @@
 			'box-shadow'      : shadowOn
 				? shadowX + 'px ' + shadowY + 'px ' + shadowBlur + 'px ' + shadowSprd + 'px ' + shadowColor
 				: 'none',
+			'width'           : buttonWidth > 0 ? buttonWidth + 'px' : '',
 		};
 
 		if ( iconType !== 'none' ) {
@@ -197,8 +252,8 @@
 
 		// Icon.
 		var iconHtml = '';
-		var iconSize  = parseInt( $( 'input[name$="[icon_size]"]' ).val(), 10 ) || 20;
-		var iconPos   = $( 'input[name$="[icon_position]"]:checked' ).val() || 'before';
+		var iconSize = parseInt( $( 'input[name$="[icon_size]"]' ).val(), 10 ) || 32;
+		var iconPos  = $( 'input[name$="[icon_position]"]:checked' ).val() || 'before';
 
 		if ( iconType === 'dashicon' ) {
 			var di = $( '#ebp-selected-icon' ).val();

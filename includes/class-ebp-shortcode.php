@@ -44,6 +44,7 @@ class EBP_Shortcode {
 			'font_size'        => $defaults['font_size'],
 			'font_bold'        => $defaults['font_bold'],
 			'font_italic'      => $defaults['font_italic'],
+			'button_width'     => $defaults['button_width'],
 			'bg_color'         => $defaults['bg_color'],
 			'bg_hover_color'   => $defaults['bg_hover_color'],
 			'text_color'       => $defaults['text_color'],
@@ -73,6 +74,7 @@ class EBP_Shortcode {
 			'email_subject'    => $defaults['email_subject'],
 			'email_body'       => $defaults['email_body'],
 			'media_url'        => $defaults['media_url'],
+			'content_id'       => $defaults['content_id'],
 			'target'           => $defaults['target'],
 		), $atts, 'eifelhoster_button' );
 
@@ -106,6 +108,11 @@ class EBP_Shortcode {
 			$href = esc_attr( $mailto );
 		} elseif ( 'media' === $a['link_type'] ) {
 			$href = esc_url( $a['media_url'] );
+		} elseif ( 'content' === $a['link_type'] && ! empty( $a['content_id'] ) ) {
+			$permalink = get_permalink( absint( $a['content_id'] ) );
+			if ( $permalink ) {
+				$href = esc_url( $permalink );
+			}
 		}
 
 		// ---- Build inline style ----
@@ -134,6 +141,10 @@ class EBP_Shortcode {
 			? $a['border_style'] : 'solid';
 		$inline['border-color']     = ebp_sanitize_css_color( $a['border_color'] );
 		$inline['border-radius']    = absint( $a['border_radius'] ) . 'px';
+
+		if ( ! empty( $a['button_width'] ) && absint( $a['button_width'] ) > 0 ) {
+			$inline['width'] = absint( $a['button_width'] ) . 'px';
+		}
 
 		if ( '1' === $a['shadow_enabled'] ) {
 			$inline['box-shadow'] = implode( ' ', array(
