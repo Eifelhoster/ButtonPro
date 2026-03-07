@@ -67,7 +67,7 @@ class EBP_Admin {
 		$clean = array();
 
 		$text_fields = array(
-			'font_family', 'font_size', 'icon', 'icon_media_url',
+			'font_family', 'font_size', 'button_width', 'icon', 'icon_media_url',
 			'icon_size', 'icon_spacing', 'border_width', 'border_color',
 			'border_radius', 'shadow_x', 'shadow_y', 'shadow_blur',
 			'shadow_spread', 'shadow_color', 'url', 'email',
@@ -182,6 +182,16 @@ class EBP_Admin {
 								<?php esc_html_e( 'Links/Rechts:', 'eifelhoster-buttons-pro' ); ?>
 								<input type="number" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[padding_h]"
 									value="<?php echo esc_attr( $d['padding_h'] ); ?>" min="0" max="200" class="small-text" />
+							</td>
+						</tr>
+						<tr>
+							<th><?php esc_html_e( 'Buttonbreite (px)', 'eifelhoster-buttons-pro' ); ?></th>
+							<td>
+								<input type="number" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[button_width]"
+									value="<?php echo esc_attr( $d['button_width'] ); ?>" min="0" max="2000" class="small-text" />
+								<span class="description">
+									<?php esc_html_e( '0 oder leer = automatische Breite', 'eifelhoster-buttons-pro' ); ?>
+								</span>
 							</td>
 						</tr>
 					</table>
@@ -487,6 +497,43 @@ class EBP_Admin {
 					); ?>
 				</p>
 			</div>
+
+			<!-- Hilfe-Box -->
+			<div class="ebp-help-box">
+				<h2 class="ebp-help-toggle">
+					<span class="dashicons dashicons-editor-help"></span>
+					<?php esc_html_e( 'Hilfe &amp; Anleitung', 'eifelhoster-buttons-pro' ); ?>
+					<span class="ebp-help-arrow dashicons dashicons-arrow-down-alt2"></span>
+				</h2>
+				<div class="ebp-help-content">
+					<h3><?php esc_html_e( 'So funktioniert das Plugin', 'eifelhoster-buttons-pro' ); ?></h3>
+					<p><?php esc_html_e( 'Mit diesem Plugin kannst du schöne Buttons in deine Beiträge und Seiten einfügen.', 'eifelhoster-buttons-pro' ); ?></p>
+
+					<h4><?php esc_html_e( 'Schritt 1: Standardwerte festlegen', 'eifelhoster-buttons-pro' ); ?></h4>
+					<p><?php esc_html_e( 'Auf dieser Seite kannst du die Standardeinstellungen für alle neuen Buttons festlegen. Diese Werte werden verwendet, wenn du im Editor einen neuen Button einfügst.', 'eifelhoster-buttons-pro' ); ?></p>
+
+					<h4><?php esc_html_e( 'Schritt 2: Button einfügen', 'eifelhoster-buttons-pro' ); ?></h4>
+					<p><?php esc_html_e( 'Öffne einen Beitrag oder eine Seite im Classic Editor. In der Symbolleiste oben siehst du einen Button mit einem ⬛-Symbol. Klicke darauf, um einen neuen Button einzufügen.', 'eifelhoster-buttons-pro' ); ?></p>
+
+					<h4><?php esc_html_e( 'Schritt 3: Button anpassen', 'eifelhoster-buttons-pro' ); ?></h4>
+					<p><?php esc_html_e( 'Im Dialog kannst du alle Eigenschaften des Buttons einstellen:', 'eifelhoster-buttons-pro' ); ?></p>
+					<ul>
+						<li><strong><?php esc_html_e( 'Text &amp; Schrift:', 'eifelhoster-buttons-pro' ); ?></strong> <?php esc_html_e( 'Beschriftung, Schriftart, -größe und Breite des Buttons.', 'eifelhoster-buttons-pro' ); ?></li>
+						<li><strong><?php esc_html_e( 'Farben &amp; Hover:', 'eifelhoster-buttons-pro' ); ?></strong> <?php esc_html_e( 'Hintergrund- und Textfarbe (auch beim Darüberfahren mit der Maus).', 'eifelhoster-buttons-pro' ); ?></li>
+						<li><strong><?php esc_html_e( 'Symbol:', 'eifelhoster-buttons-pro' ); ?></strong> <?php esc_html_e( 'Optionales Icon (Dashicon oder eigenes Bild) vor oder nach dem Text.', 'eifelhoster-buttons-pro' ); ?></li>
+						<li><strong><?php esc_html_e( 'Rahmen &amp; Schatten:', 'eifelhoster-buttons-pro' ); ?></strong> <?php esc_html_e( 'Rahmenfarbe, -stärke und abgerundete Ecken; optional einen Schlagschatten.', 'eifelhoster-buttons-pro' ); ?></li>
+						<li><strong><?php esc_html_e( 'Link &amp; Ziel:', 'eifelhoster-buttons-pro' ); ?></strong> <?php esc_html_e( 'Wohin der Button führt – URL, E-Mail oder Mediendatei.', 'eifelhoster-buttons-pro' ); ?></li>
+					</ul>
+
+					<h4><?php esc_html_e( 'Buttonbreite einstellen', 'eifelhoster-buttons-pro' ); ?></h4>
+					<p><?php esc_html_e( 'Im Tab „Text &amp; Schrift" kannst du die Mindestbreite des Buttons in Pixeln angeben. Lasse das Feld leer oder trage 0 ein, damit der Button automatisch so breit ist wie sein Inhalt.', 'eifelhoster-buttons-pro' ); ?></p>
+
+					<h4><?php esc_html_e( 'Shortcode manuell eingeben', 'eifelhoster-buttons-pro' ); ?></h4>
+					<p><?php esc_html_e( 'Du kannst den Button auch direkt als Shortcode in den Texteditor schreiben:', 'eifelhoster-buttons-pro' ); ?></p>
+					<pre><code>[eifelhoster_button text="Klick mich" url="https://beispiel.de" target="_blank"]</code></pre>
+				</div>
+			</div>
+
 		</div><!-- .wrap -->
 		<?php
 	}

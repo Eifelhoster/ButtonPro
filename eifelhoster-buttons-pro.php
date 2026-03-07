@@ -24,11 +24,13 @@ require_once EBP_PLUGIN_DIR . 'includes/class-ebp-helpers.php';
 require_once EBP_PLUGIN_DIR . 'includes/class-ebp-shortcode.php';
 require_once EBP_PLUGIN_DIR . 'includes/class-ebp-editor.php';
 require_once EBP_PLUGIN_DIR . 'includes/class-ebp-admin.php';
+require_once EBP_PLUGIN_DIR . 'includes/class-ebp-elementor.php';
 
 add_action( 'plugins_loaded', 'ebp_init' );
 
 function ebp_init() {
 	new EBP_Shortcode();
+	new EBP_Elementor();
 	if ( is_admin() ) {
 		new EBP_Admin();
 		new EBP_Editor();

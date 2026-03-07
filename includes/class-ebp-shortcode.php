@@ -44,6 +44,7 @@ class EBP_Shortcode {
 			'font_size'        => $defaults['font_size'],
 			'font_bold'        => $defaults['font_bold'],
 			'font_italic'      => $defaults['font_italic'],
+			'button_width'     => $defaults['button_width'],
 			'bg_color'         => $defaults['bg_color'],
 			'bg_hover_color'   => $defaults['bg_hover_color'],
 			'text_color'       => $defaults['text_color'],
@@ -147,6 +148,10 @@ class EBP_Shortcode {
 
 		if ( 'none' !== $a['icon_type'] ) {
 			$inline['gap'] = absint( $a['icon_spacing'] ) . 'px';
+		}
+
+		if ( ! empty( $a['button_width'] ) && absint( $a['button_width'] ) > 0 ) {
+			$inline['min-width'] = absint( $a['button_width'] ) . 'px';
 		}
 
 		$style_str = '';

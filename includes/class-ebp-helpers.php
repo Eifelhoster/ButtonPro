@@ -18,6 +18,7 @@ function ebp_get_defaults() {
 		'font_size'        => '16',
 		'font_bold'        => '0',
 		'font_italic'      => '0',
+		'button_width'     => '',
 		'bg_color'         => '#007bff',
 		'bg_hover_color'   => '#0056b3',
 		'text_color'       => '#ffffff',

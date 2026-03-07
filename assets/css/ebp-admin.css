@@ -341,3 +341,57 @@
 .ebp-dialog-color + .wp-color-result {
 	margin: 0;
 }
+
+/* ============================================================
+   Help Box
+   ============================================================ */
+
+.ebp-help-box {
+	margin-top: 24px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	max-width: 900px;
+}
+.ebp-help-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 16px;
+	margin: 0;
+	cursor: pointer;
+	font-size: 14px;
+	font-weight: 600;
+	color: #2271b1;
+	border-bottom: 1px solid transparent;
+	user-select: none;
+}
+.ebp-help-toggle:hover {
+	color: #0a4b78;
+}
+.ebp-help-toggle .ebp-help-arrow {
+	margin-left: auto;
+}
+.ebp-help-content {
+	display: none;
+	padding: 16px 20px;
+	border-top: 1px solid #c3c4c7;
+}
+.ebp-help-content h3 {
+	margin-top: 0;
+}
+.ebp-help-content h4 {
+	margin-bottom: 4px;
+}
+.ebp-help-content ul {
+	list-style: disc;
+	margin-left: 20px;
+}
+.ebp-help-content pre {
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	padding: 10px 14px;
+	border-radius: 3px;
+	overflow-x: auto;
+	font-size: 12px;
+}
