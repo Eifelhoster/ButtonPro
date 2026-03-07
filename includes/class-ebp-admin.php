@@ -25,13 +25,38 @@ class EBP_Admin {
 			'buttonpro',
 			array( $this, 'render_page' )
 		);
+
+		// Documentation sub-page (hidden from menu, accessible via the Dokumentation button).
+		add_submenu_page(
+			null,
+			__( 'ButtonPro Dokumentation', 'eifelhoster-buttons-pro' ),
+			__( 'Dokumentation', 'eifelhoster-buttons-pro' ),
+			'manage_options',
+			'buttonpro-docs',
+			array( $this, 'render_docs_page' )
+		);
 	}
 
 	/** Enqueue colour-picker + admin JS/CSS */
 	public function enqueue_scripts( $hook ) {
-		if ( 'settings_page_buttonpro' !== $hook ) {
+		// Load admin CSS on both the settings page and the documentation page.
+		$is_settings = ( 'settings_page_buttonpro' === $hook );
+		$is_docs     = ( 'admin_page_buttonpro-docs' === $hook );
+
+		if ( $is_docs ) {
+			wp_enqueue_style(
+				'ebp-admin',
+				EBP_PLUGIN_URL . 'assets/css/ebp-admin.css',
+				array(),
+				EBP_VERSION
+			);
 			return;
 		}
+
+		if ( ! $is_settings ) {
+			return;
+		}
+
 		wp_enqueue_style( 'wp-color-picker' );
 		wp_enqueue_media();
 		wp_enqueue_style(
@@ -82,6 +107,9 @@ class EBP_Admin {
 		}
 
 		$clean['email_body'] = isset( $input['email_body'] ) ? sanitize_textarea_field( $input['email_body'] ) : '';
+
+		// Logo URL – stored as a plain URL.
+		$clean['logo_url'] = isset( $input['logo_url'] ) ? esc_url_raw( $input['logo_url'] ) : '';
 
 		$checkboxes = array( 'font_bold', 'font_italic', 'shadow_enabled' );
 		foreach ( $checkboxes as $field ) {
@@ -501,6 +529,41 @@ class EBP_Admin {
 					</table>
 				</div>
 
+				<!-- Logo Upload (always visible, below all tabs) -->
+				<div class="ebp-logo-upload-section">
+					<h2><?php esc_html_e( 'Logo / Plugin-Bild', 'eifelhoster-buttons-pro' ); ?></h2>
+					<p class="description">
+						<?php esc_html_e( 'Laden Sie hier Ihr Logo hoch. Es wird in der Dokumentationsseite angezeigt.', 'eifelhoster-buttons-pro' ); ?>
+					</p>
+					<table class="form-table ebp-form-table">
+						<tr>
+							<th><?php esc_html_e( 'Logo', 'eifelhoster-buttons-pro' ); ?></th>
+							<td>
+								<input type="hidden" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[logo_url]"
+									id="ebp-logo-url" value="<?php echo esc_url( $d['logo_url'] ); ?>" />
+								<button type="button" class="button" id="ebp-select-logo">
+									<?php esc_html_e( 'Logo auswählen', 'eifelhoster-buttons-pro' ); ?>
+								</button>
+								<?php
+								$remove_style = empty( $d['logo_url'] )
+									? 'margin-left:8px;display:none'
+									: 'margin-left:8px';
+								?>
+								<button type="button" class="button" id="ebp-remove-logo"
+									style="<?php echo esc_attr( $remove_style ); ?>">
+									<?php esc_html_e( 'Entfernen', 'eifelhoster-buttons-pro' ); ?>
+								</button>
+								<div id="ebp-logo-preview" style="margin-top:10px">
+									<?php if ( ! empty( $d['logo_url'] ) ) : ?>
+										<img src="<?php echo esc_url( $d['logo_url'] ); ?>"
+											style="max-height:80px;max-width:300px;display:block" />
+									<?php endif; ?>
+								</div>
+							</td>
+						</tr>
+					</table>
+				</div>
+
 				<?php submit_button( __( 'Einstellungen speichern', 'eifelhoster-buttons-pro' ) ); ?>
 			</form>
 
@@ -526,7 +589,240 @@ class EBP_Admin {
 						'<a href="https://eifelhoster.de" target="_blank" rel="noopener">eifelhoster.de · Michael Krämer</a>'
 					); ?>
 				</p>
+				<p>
+					<a href="<?php echo esc_url( admin_url( 'options-general.php?page=buttonpro-docs' ) ); ?>"
+						class="button button-secondary ebp-docs-btn">
+						<span class="dashicons dashicons-book-alt" style="vertical-align:middle;margin-top:-2px"></span>
+						<?php esc_html_e( 'Dokumentation', 'eifelhoster-buttons-pro' ); ?>
+					</a>
+				</p>
 			</div>
+		</div><!-- .wrap -->
+		<?php
+	}
+
+	/** Render the documentation page */
+	public function render_docs_page() {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			return;
+		}
+
+		$d        = ebp_get_defaults();
+		$logo_url = ! empty( $d['logo_url'] ) ? $d['logo_url'] : '';
+		$back_url = admin_url( 'options-general.php?page=buttonpro' );
+		?>
+		<div class="wrap ebp-admin-wrap ebp-docs-wrap">
+
+			<!-- Header with logo -->
+			<div class="ebp-docs-header">
+				<?php if ( $logo_url ) : ?>
+					<img src="<?php echo esc_url( $logo_url ); ?>"
+						alt="<?php esc_attr_e( 'Logo', 'eifelhoster-buttons-pro' ); ?>"
+						class="ebp-docs-logo" />
+				<?php else : ?>
+					<p class="ebp-docs-no-logo">
+						<?php esc_html_e( 'Noch kein Logo hochgeladen. Laden Sie auf der Einstellungsseite ein Logo hoch.', 'eifelhoster-buttons-pro' ); ?>
+					</p>
+				<?php endif; ?>
+
+				<h1>
+					<span class="dashicons dashicons-book-alt ebp-title-icon"></span>
+					<?php esc_html_e( 'ButtonPro – Dokumentation', 'eifelhoster-buttons-pro' ); ?>
+				</h1>
+				<p>
+					<a href="<?php echo esc_url( $back_url ); ?>" class="button button-secondary">
+						&larr; <?php esc_html_e( 'Zurück zu den Einstellungen', 'eifelhoster-buttons-pro' ); ?>
+					</a>
+				</p>
+			</div>
+
+			<div class="ebp-docs-content">
+
+				<!-- ============================================================ -->
+				<!-- 1. Einführung                                                  -->
+				<!-- ============================================================ -->
+				<div class="ebp-docs-section">
+					<h2>1. <?php esc_html_e( 'Einführung', 'eifelhoster-buttons-pro' ); ?></h2>
+					<p>
+						<?php esc_html_e( 'Willkommen bei Eifelhoster Buttons Pro! Dieses Plugin ermöglicht Ihnen, ansprechend gestaltete Buttons in Ihre WordPress-Seiten und -Beiträge einzufügen – sowohl im Classic Editor als auch im Elementor Page Builder.', 'eifelhoster-buttons-pro' ); ?>
+					</p>
+					<p>
+						<?php esc_html_e( 'Mit wenigen Klicks können Sie Farben, Schriftarten, Symbole, Rahmen, Schatten und Links für jeden Button individuell anpassen. Auf dieser Dokumentationsseite erfahren Sie Schritt für Schritt, wie das Plugin funktioniert.', 'eifelhoster-buttons-pro' ); ?>
+					</p>
+				</div>
+
+				<!-- ============================================================ -->
+				<!-- 2. Grundeinstellungen                                          -->
+				<!-- ============================================================ -->
+				<div class="ebp-docs-section">
+					<h2>2. <?php esc_html_e( 'Grundeinstellungen', 'eifelhoster-buttons-pro' ); ?></h2>
+					<p>
+						<?php esc_html_e( 'Unter Einstellungen → ButtonPro finden Sie die Seite für die Standardwerte. Diese Werte gelten als Vorgabe für jeden neuen Button, den Sie erstellen.', 'eifelhoster-buttons-pro' ); ?>
+					</p>
+					<ol>
+						<li>
+							<strong><?php esc_html_e( 'Text &amp; Schrift', 'eifelhoster-buttons-pro' ); ?></strong> –
+							<?php esc_html_e( 'Definieren Sie Schriftart, Schriftgröße, Fett-/Kursivstellung, Innenabstände und die Gesamtbreite des Buttons.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<strong><?php esc_html_e( 'Farben &amp; Hover', 'eifelhoster-buttons-pro' ); ?></strong> –
+							<?php esc_html_e( 'Legen Sie Hintergrundfarbe, Textfarbe sowie die Farben im Hover-Zustand (wenn die Maus über den Button fährt) fest.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<strong><?php esc_html_e( 'Symbol (Icon)', 'eifelhoster-buttons-pro' ); ?></strong> –
+							<?php esc_html_e( 'Wählen Sie optional ein Dashicon-Symbol oder eine Mediendatei als Icon für den Button.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<strong><?php esc_html_e( 'Rahmen &amp; Schatten', 'eifelhoster-buttons-pro' ); ?></strong> –
+							<?php esc_html_e( 'Geben Sie Ihren Buttons einen Rahmen und/oder einen Schlagschatten.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<strong><?php esc_html_e( 'Link &amp; Ziel', 'eifelhoster-buttons-pro' ); ?></strong> –
+							<?php esc_html_e( 'Bestimmen Sie den Standard-Linktyp (URL, E-Mail, Mediendatei oder Seiteninhalt) und ob der Link im selben oder einem neuen Tab geöffnet werden soll.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+					</ol>
+					<p>
+						<?php esc_html_e( 'Nachdem Sie Ihre Einstellungen vorgenommen haben, klicken Sie auf „Einstellungen speichern". Die Werte werden als Standard für alle neuen Buttons verwendet.', 'eifelhoster-buttons-pro' ); ?>
+					</p>
+				</div>
+
+				<!-- ============================================================ -->
+				<!-- 3. Verwendung im Elementor-Widget                             -->
+				<!-- ============================================================ -->
+				<div class="ebp-docs-section">
+					<h2>3. <?php esc_html_e( 'Verwendung im Elementor-Widget', 'eifelhoster-buttons-pro' ); ?></h2>
+					<p>
+						<?php esc_html_e( 'Falls Elementor auf Ihrer Website installiert ist, steht Ihnen das Widget „Eifelhoster Button Pro" in der Elementor-Kategorie „Eifelhoster" zur Verfügung.', 'eifelhoster-buttons-pro' ); ?>
+					</p>
+					<ol>
+						<li><?php esc_html_e( 'Öffnen Sie eine Seite oder einen Beitrag im Elementor-Editor.', 'eifelhoster-buttons-pro' ); ?></li>
+						<li><?php esc_html_e( 'Suchen Sie im Widget-Panel nach „Eifelhoster Button Pro" oder klappen Sie die Kategorie „Eifelhoster" auf.', 'eifelhoster-buttons-pro' ); ?></li>
+						<li><?php esc_html_e( 'Ziehen Sie das Widget per Drag &amp; Drop in Ihr Layout.', 'eifelhoster-buttons-pro' ); ?></li>
+						<li><?php esc_html_e( 'Im linken Bereich erscheinen die Einstellungen des Widgets – alle Felder sind mit den gespeicherten Standardwerten vorbelegt.', 'eifelhoster-buttons-pro' ); ?></li>
+						<li><?php esc_html_e( 'Passen Sie die Einstellungen nach Bedarf an. Die Vorschau im Editor aktualisiert sich automatisch.', 'eifelhoster-buttons-pro' ); ?></li>
+						<li><?php esc_html_e( 'Speichern und veröffentlichen Sie die Seite.', 'eifelhoster-buttons-pro' ); ?></li>
+					</ol>
+					<p>
+						<strong><?php esc_html_e( 'Hinweis:', 'eifelhoster-buttons-pro' ); ?></strong>
+						<?php esc_html_e( 'Die im Elementor-Widget eingestellten Werte überschreiben die Standardwerte nur für diesen einen Button.', 'eifelhoster-buttons-pro' ); ?>
+					</p>
+				</div>
+
+				<!-- ============================================================ -->
+				<!-- 4. Upload von Logo/Bildern                                    -->
+				<!-- ============================================================ -->
+				<div class="ebp-docs-section">
+					<h2>4. <?php esc_html_e( 'Upload von Logo/Bildern', 'eifelhoster-buttons-pro' ); ?></h2>
+					<p>
+						<?php esc_html_e( 'Sie können auf der Einstellungsseite ein Logo hochladen. Dieses Logo erscheint dann oben auf dieser Dokumentationsseite.', 'eifelhoster-buttons-pro' ); ?>
+					</p>
+					<ol>
+						<li>
+							<?php esc_html_e( 'Gehen Sie zu Einstellungen → ButtonPro.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<?php esc_html_e( 'Scrollen Sie nach unten zum Abschnitt „Logo / Plugin-Bild".', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<?php esc_html_e( 'Klicken Sie auf „Logo auswählen" und wählen Sie ein Bild aus der WordPress-Mediathek aus (oder laden Sie ein neues Bild hoch).', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<?php esc_html_e( 'Klicken Sie auf „Einstellungen speichern". Das Logo wird sofort in der Dokumentation angezeigt.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+					</ol>
+					<p>
+						<?php esc_html_e( 'Für Symbolbilder in Buttons gehen Sie ebenso vor: Wählen Sie unter „Symbol (Icon)" den Typ „Mediendatei" und klicken Sie auf „Datei auswählen".', 'eifelhoster-buttons-pro' ); ?>
+					</p>
+				</div>
+
+				<!-- ============================================================ -->
+				<!-- 5. Häufige Anwendungsfälle                                    -->
+				<!-- ============================================================ -->
+				<div class="ebp-docs-section">
+					<h2>5. <?php esc_html_e( 'Häufige Anwendungsfälle', 'eifelhoster-buttons-pro' ); ?></h2>
+					<ul>
+						<li>
+							<strong><?php esc_html_e( 'Call-to-Action-Button:', 'eifelhoster-buttons-pro' ); ?></strong>
+							<?php esc_html_e( 'Erstellen Sie einen auffälligen Button mit Ihrer Markenfarbe, der auf eine wichtige Seite verlinkt.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<strong><?php esc_html_e( 'Download-Button:', 'eifelhoster-buttons-pro' ); ?></strong>
+							<?php esc_html_e( 'Setzen Sie den Linktyp auf „Mediendatei" und wählen Sie eine PDF-Datei aus der Mediathek.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<strong><?php esc_html_e( 'E-Mail-Button:', 'eifelhoster-buttons-pro' ); ?></strong>
+							<?php esc_html_e( 'Wählen Sie den Linktyp „E-Mail" und tragen Sie Ihre E-Mail-Adresse sowie einen optionalen Betreff ein. Der Button öffnet beim Klick das E-Mail-Programm des Besuchers.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<strong><?php esc_html_e( 'Navigations-Button:', 'eifelhoster-buttons-pro' ); ?></strong>
+							<?php esc_html_e( 'Setzen Sie den Linktyp auf „Inhalt" und suchen Sie nach einer Seite oder einem Beitrag. Der Button verlinkt automatisch auf diese Seite.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+					</ul>
+				</div>
+
+				<!-- ============================================================ -->
+				<!-- 6. Hinweise für Einsteiger                                    -->
+				<!-- ============================================================ -->
+				<div class="ebp-docs-section">
+					<h2>6. <?php esc_html_e( 'Hinweise für Einsteiger', 'eifelhoster-buttons-pro' ); ?></h2>
+					<ul>
+						<li>
+							<strong><?php esc_html_e( 'Farben:', 'eifelhoster-buttons-pro' ); ?></strong>
+							<?php esc_html_e( 'Klicken Sie auf das farbige Feld neben einem Farbfeld, um den Farbwähler zu öffnen. Sie können Farben entweder visuell auswählen oder einen Hex-Code (z. B. #007bff) direkt eingeben.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<strong><?php esc_html_e( 'Hover-Effekt:', 'eifelhoster-buttons-pro' ); ?></strong>
+							<?php esc_html_e( 'Der Hover-Zustand wird aktiv, wenn ein Besucher die Maus über den Button bewegt. Mit „Grow bei Hover" können Sie den Button leicht vergrößern (z. B. 1.05 = 5 % größer).', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<strong><?php esc_html_e( 'Vorschau:', 'eifelhoster-buttons-pro' ); ?></strong>
+							<?php esc_html_e( 'Auf der Einstellungsseite sehen Sie unterhalb des Formulars eine Live-Vorschau Ihres Buttons. Diese aktualisiert sich automatisch, wenn Sie Einstellungen ändern.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<strong><?php esc_html_e( 'Shortcode:', 'eifelhoster-buttons-pro' ); ?></strong>
+							<?php esc_html_e( 'Im Classic Editor fügen Sie Buttons über die Toolbar-Schaltfläche ein. Der Shortcode lautet [eifelhoster_button …].', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+						<li>
+							<strong><?php esc_html_e( 'Standardwerte ändern:', 'eifelhoster-buttons-pro' ); ?></strong>
+							<?php esc_html_e( 'Bestehende Buttons werden durch eine Änderung der Standardwerte nicht verändert. Nur neu angelegte Buttons erhalten die neuen Vorgabewerte.', 'eifelhoster-buttons-pro' ); ?>
+						</li>
+					</ul>
+				</div>
+
+				<!-- ============================================================ -->
+				<!-- 7. Entwickler / Kontakt                                       -->
+				<!-- ============================================================ -->
+				<div class="ebp-docs-section ebp-docs-contact">
+					<h2>7. <?php esc_html_e( 'Entwickler / Kontakt', 'eifelhoster-buttons-pro' ); ?></h2>
+					<p><?php esc_html_e( 'Bei Fragen, Anregungen oder Supportbedarf wenden Sie sich bitte direkt an den Entwickler:', 'eifelhoster-buttons-pro' ); ?></p>
+					<address class="ebp-docs-address">
+						<strong>Michael Krämer</strong><br />
+						Founder &amp; CEO eifelhoster.de<br />
+						Webhosting, Webdesign und Service<br />
+						Dorfstr. 24<br />
+						54597 Roth bei Prüm<br /><br />
+						<?php esc_html_e( 'Fon:', 'eifelhoster-buttons-pro' ); ?> <a href="tel:+4965526009995">+49 6552 6009995</a><br />
+						<?php esc_html_e( 'Fax:', 'eifelhoster-buttons-pro' ); ?> +49 6552 6009996<br />
+						<?php esc_html_e( 'Mobil:', 'eifelhoster-buttons-pro' ); ?> <a href="tel:+491794773134">+49 179 4773134</a><br />
+						<?php esc_html_e( 'Web:', 'eifelhoster-buttons-pro' ); ?> <a href="https://www.eifelhoster.de" target="_blank" rel="noopener">www.eifelhoster.de</a><br />
+						<?php esc_html_e( 'Mail:', 'eifelhoster-buttons-pro' ); ?> <a href="mailto:mk@michael-kraemer.eu">mk@michael-kraemer.eu</a>
+					</address>
+				</div>
+
+			</div><!-- .ebp-docs-content -->
+
+			<div class="ebp-admin-footer">
+				<p>
+					<?php printf(
+						/* translators: 1: plugin name 2: version 3: author link */
+						esc_html__( '%1$s v%2$s – %3$s', 'eifelhoster-buttons-pro' ),
+						'<strong>Eifelhoster Buttons Pro</strong>',
+						esc_html( EBP_VERSION ),
+						'<a href="https://eifelhoster.de" target="_blank" rel="noopener">eifelhoster.de · Michael Krämer</a>'
+					); ?>
+				</p>
+			</div>
+
 		</div><!-- .wrap -->
 		<?php
 	}

@@ -35,6 +35,9 @@ class EBP_Elementor_Widget extends Widget_Base {
 
 	protected function register_controls() {
 
+		// Load admin-page defaults so the widget inherits the saved settings.
+		$d = ebp_get_defaults();
+
 		// ============================================================
 		// TAB: Text & Schrift
 		// ============================================================
@@ -61,7 +64,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'       => __( 'Schriftart', 'eifelhoster-buttons-pro' ),
 				'type'        => Controls_Manager::TEXT,
-				'default'     => 'inherit',
+				'default'     => $d['font_family'],
 				'placeholder' => 'inherit, Arial, Georgia, …',
 			)
 		);
@@ -71,7 +74,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Schriftgröße (px)', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::NUMBER,
-				'default' => 16,
+				'default' => (int) $d['font_size'],
 				'min'     => 8,
 				'max'     => 120,
 			)
@@ -85,7 +88,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 				'label_on'     => __( 'Ja', 'eifelhoster-buttons-pro' ),
 				'label_off'    => __( 'Nein', 'eifelhoster-buttons-pro' ),
 				'return_value' => '1',
-				'default'      => '',
+				'default'      => $d['font_bold'],
 			)
 		);
 
@@ -97,7 +100,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 				'label_on'     => __( 'Ja', 'eifelhoster-buttons-pro' ),
 				'label_off'    => __( 'Nein', 'eifelhoster-buttons-pro' ),
 				'return_value' => '1',
-				'default'      => '',
+				'default'      => $d['font_italic'],
 			)
 		);
 
@@ -106,7 +109,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Innenabstand Oben/Unten (px)', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::NUMBER,
-				'default' => 10,
+				'default' => (int) $d['padding_v'],
 				'min'     => 0,
 				'max'     => 100,
 			)
@@ -117,7 +120,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Innenabstand Links/Rechts (px)', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::NUMBER,
-				'default' => 20,
+				'default' => (int) $d['padding_h'],
 				'min'     => 0,
 				'max'     => 200,
 			)
@@ -128,7 +131,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'       => __( 'Button-Breite gesamt (px)', 'eifelhoster-buttons-pro' ),
 				'type'        => Controls_Manager::NUMBER,
-				'default'     => 300,
+				'default'     => (int) $d['button_width'],
 				'min'         => 0,
 				'max'         => 2000,
 				'description' => __( '0 = automatische Breite', 'eifelhoster-buttons-pro' ),
@@ -153,7 +156,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Hintergrundfarbe', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::COLOR,
-				'default' => '#007bff',
+				'default' => $d['bg_color'],
 			)
 		);
 
@@ -162,7 +165,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Hintergrundfarbe (Hover)', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::COLOR,
-				'default' => '#0056b3',
+				'default' => $d['bg_hover_color'],
 			)
 		);
 
@@ -171,7 +174,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Textfarbe', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::COLOR,
-				'default' => '#ffffff',
+				'default' => $d['text_color'],
 			)
 		);
 
@@ -180,7 +183,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Textfarbe (Hover)', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::COLOR,
-				'default' => '#ffffff',
+				'default' => $d['text_hover_color'],
 			)
 		);
 
@@ -189,7 +192,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Grow bei Hover', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::NUMBER,
-				'default' => 1.04,
+				'default' => (float) $d['hover_grow'],
 				'min'     => 1,
 				'max'     => 2,
 				'step'    => 0.01,
@@ -214,7 +217,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Symboltyp', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::SELECT,
-				'default' => 'none',
+				'default' => $d['icon_type'],
 				'options' => array(
 					'none'     => __( 'Kein Symbol', 'eifelhoster-buttons-pro' ),
 					'dashicon' => 'Dashicon',
@@ -228,7 +231,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'     => __( 'Dashicon (Slug)', 'eifelhoster-buttons-pro' ),
 				'type'      => Controls_Manager::TEXT,
-				'default'   => '',
+				'default'   => $d['icon'],
 				'condition' => array( 'icon_type' => 'dashicon' ),
 			)
 		);
@@ -238,7 +241,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'     => __( 'Symbol-Bild URL', 'eifelhoster-buttons-pro' ),
 				'type'      => Controls_Manager::TEXT,
-				'default'   => '',
+				'default'   => $d['icon_media_url'],
 				'condition' => array( 'icon_type' => 'media' ),
 			)
 		);
@@ -248,7 +251,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Symbolgröße (px)', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::NUMBER,
-				'default' => 32,
+				'default' => (int) $d['icon_size'],
 				'min'     => 8,
 				'max'     => 120,
 			)
@@ -259,7 +262,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Abstand zum Text (px)', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::NUMBER,
-				'default' => 24,
+				'default' => (int) $d['icon_spacing'],
 				'min'     => 0,
 				'max'     => 60,
 			)
@@ -270,7 +273,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Symbolposition', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::SELECT,
-				'default' => 'before',
+				'default' => $d['icon_position'],
 				'options' => array(
 					'before' => __( 'Vor dem Text', 'eifelhoster-buttons-pro' ),
 					'after'  => __( 'Hinter dem Text', 'eifelhoster-buttons-pro' ),
@@ -296,7 +299,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Rahmenstärke (px)', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::NUMBER,
-				'default' => 0,
+				'default' => (int) $d['border_width'],
 				'min'     => 0,
 				'max'     => 20,
 			)
@@ -307,7 +310,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Rahmenstil', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::SELECT,
-				'default' => 'none',
+				'default' => $d['border_style'],
 				'options' => array(
 					'none'   => 'none',
 					'solid'  => 'solid',
@@ -323,7 +326,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Rahmenfarbe', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::COLOR,
-				'default' => '#000000',
+				'default' => $d['border_color'],
 			)
 		);
 
@@ -332,7 +335,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'   => __( 'Rahmenradius (px)', 'eifelhoster-buttons-pro' ),
 				'type'    => Controls_Manager::NUMBER,
-				'default' => 4,
+				'default' => (int) $d['border_radius'],
 				'min'     => 0,
 				'max'     => 100,
 			)
@@ -346,7 +349,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 				'label_on'     => __( 'Ja', 'eifelhoster-buttons-pro' ),
 				'label_off'    => __( 'Nein', 'eifelhoster-buttons-pro' ),
 				'return_value' => '1',
-				'default'      => '1',
+				'default'      => $d['shadow_enabled'],
 			)
 		);
 
@@ -355,7 +358,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'     => __( 'Schatten X-Offset (px)', 'eifelhoster-buttons-pro' ),
 				'type'      => Controls_Manager::NUMBER,
-				'default'   => 2,
+				'default'   => (int) $d['shadow_x'],
 				'condition' => array( 'shadow_enabled' => '1' ),
 			)
 		);
@@ -365,7 +368,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'     => __( 'Schatten Y-Offset (px)', 'eifelhoster-buttons-pro' ),
 				'type'      => Controls_Manager::NUMBER,
-				'default'   => 2,
+				'default'   => (int) $d['shadow_y'],
 				'condition' => array( 'shadow_enabled' => '1' ),
 			)
 		);
@@ -375,7 +378,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'     => __( 'Schatten Unschärfe (px)', 'eifelhoster-buttons-pro' ),
 				'type'      => Controls_Manager::NUMBER,
-				'default'   => 4,
+				'default'   => (int) $d['shadow_blur'],
 				'min'       => 0,
 				'condition' => array( 'shadow_enabled' => '1' ),
 			)
@@ -386,7 +389,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'     => __( 'Schatten Ausbreitung (px)', 'eifelhoster-buttons-pro' ),
 				'type'      => Controls_Manager::NUMBER,
-				'default'   => 2,
+				'default'   => (int) $d['shadow_spread'],
 				'condition' => array( 'shadow_enabled' => '1' ),
 			)
 		);
@@ -396,7 +399,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'     => __( 'Schattenfarbe', 'eifelhoster-buttons-pro' ),
 				'type'      => Controls_Manager::COLOR,
-				'default'   => '#777777',
+				'default'   => $d['shadow_color'],
 				'condition' => array( 'shadow_enabled' => '1' ),
 			)
 		);
