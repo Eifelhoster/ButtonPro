@@ -64,6 +64,9 @@ class EBP_Editor {
 				'tabIcon'       => __( 'Symbol', 'eifelhoster-buttons-pro' ),
 				'tabBorder'     => __( 'Rahmen & Schatten', 'eifelhoster-buttons-pro' ),
 				'tabLink'       => __( 'Link & Ziel', 'eifelhoster-buttons-pro' ),
+				'tabHelp'       => __( 'Hilfe', 'eifelhoster-buttons-pro' ),
+				'insert'        => __( 'Button einfügen', 'eifelhoster-buttons-pro' ),
+				'update'        => __( 'Button aktualisieren', 'eifelhoster-buttons-pro' ),
 			),
 		) );
 	}
@@ -120,6 +123,10 @@ class EBP_Editor {
 					<button type="button" class="ebp-modal-tab" data-tab="link">
 						<?php esc_html_e( 'Link & Ziel', 'eifelhoster-buttons-pro' ); ?>
 					</button>
+					<button type="button" class="ebp-modal-tab" data-tab="help">
+						<span class="dashicons dashicons-editor-help" style="vertical-align:text-bottom;font-size:14px;width:14px;height:14px;margin-right:2px"></span>
+						<?php esc_html_e( 'Hilfe', 'eifelhoster-buttons-pro' ); ?>
+					</button>
 				</div>
 
 				<div id="ebp-modal-body">
@@ -159,6 +166,13 @@ class EBP_Editor {
 									&nbsp;
 									<?php esc_html_e( 'H:', 'eifelhoster-buttons-pro' ); ?>
 									<input type="number" id="ebp-f-padding-h" min="0" max="200" style="width:70px" />
+								</td>
+							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Button-Breite (px)', 'eifelhoster-buttons-pro' ); ?></th>
+								<td>
+									<input type="number" id="ebp-f-button-width" min="0" max="2000" style="width:80px" />
+									<span class="description"><?php esc_html_e( '0 = auto', 'eifelhoster-buttons-pro' ); ?></span>
 								</td>
 							</tr>
 						</table>
@@ -377,6 +391,50 @@ class EBP_Editor {
 						</table>
 					</div>
 
+					<!-- ===== TAB: Help ===== -->
+					<div class="ebp-modal-panel" id="ebp-panel-help">
+						<div class="ebp-help-content">
+							<h3><?php esc_html_e( 'Button erstellen', 'eifelhoster-buttons-pro' ); ?></h3>
+							<ol>
+								<li><?php esc_html_e( 'Klicken Sie im Classic Editor an die Stelle, wo der Button erscheinen soll.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Klicken Sie auf den „⬛ Button"-Knopf in der Werkzeugleiste des Editors.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Konfigurieren Sie den Button in den Reitern und klicken Sie auf „Button einfügen".', 'eifelhoster-buttons-pro' ); ?></li>
+							</ol>
+
+							<h3><?php esc_html_e( 'Vorhandenen Button bearbeiten', 'eifelhoster-buttons-pro' ); ?></h3>
+							<ol>
+								<li><?php esc_html_e( 'Klicken Sie mit dem Cursor in den vorhandenen Button-Text im Editor.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Klicken Sie auf den „⬛ Button"-Knopf in der Werkzeugleiste.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Der Dialog öffnet sich mit den aktuellen Werten vorausgefüllt.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Nehmen Sie Ihre Änderungen vor und klicken Sie auf „Button aktualisieren".', 'eifelhoster-buttons-pro' ); ?></li>
+							</ol>
+
+							<h3><?php esc_html_e( 'Reiter-Übersicht', 'eifelhoster-buttons-pro' ); ?></h3>
+							<dl class="ebp-help-dl">
+								<dt><?php esc_html_e( 'Text & Schrift', 'eifelhoster-buttons-pro' ); ?></dt>
+								<dd><?php esc_html_e( 'Button-Text, Schriftart, Schriftgröße, Fett/Kursiv, Innenabstand und Button-Breite.', 'eifelhoster-buttons-pro' ); ?></dd>
+								<dt><?php esc_html_e( 'Farben & Hover', 'eifelhoster-buttons-pro' ); ?></dt>
+								<dd><?php esc_html_e( 'Hintergrundfarbe, Textfarbe und Hover-Effekte (Farbe & Vergrößerung beim Überfahren mit der Maus).', 'eifelhoster-buttons-pro' ); ?></dd>
+								<dt><?php esc_html_e( 'Symbol', 'eifelhoster-buttons-pro' ); ?></dt>
+								<dd><?php esc_html_e( 'Optionales Symbol vor oder hinter dem Text (Dashicon-Symbol oder Bilddatei aus der Mediathek).', 'eifelhoster-buttons-pro' ); ?></dd>
+								<dt><?php esc_html_e( 'Rahmen & Schatten', 'eifelhoster-buttons-pro' ); ?></dt>
+								<dd><?php esc_html_e( 'Rahmenstärke, Rahmenstil, Rahmenfarbe, Eckenradius und Schlagschatten.', 'eifelhoster-buttons-pro' ); ?></dd>
+								<dt><?php esc_html_e( 'Link & Ziel', 'eifelhoster-buttons-pro' ); ?></dt>
+								<dd><?php esc_html_e( 'Wohin der Button verlinkt (URL, E-Mail-Adresse oder Mediendatei) und ob er im gleichen oder einem neuen Tab öffnet.', 'eifelhoster-buttons-pro' ); ?></dd>
+							</dl>
+
+							<h3><?php esc_html_e( 'Tipps', 'eifelhoster-buttons-pro' ); ?></h3>
+							<ul class="ebp-help-ul">
+								<li><strong><?php esc_html_e( 'Button-Breite:', 'eifelhoster-buttons-pro' ); ?></strong>
+									<?php esc_html_e( '0 = Breite passt sich automatisch dem Inhalt an. Ein Wert größer 0 setzt eine feste Breite in Pixeln.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><strong><?php esc_html_e( 'Vorschau:', 'eifelhoster-buttons-pro' ); ?></strong>
+									<?php esc_html_e( 'Am unteren Rand des Dialogs sehen Sie eine Live-Vorschau des Buttons.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><strong><?php esc_html_e( 'Standardwerte:', 'eifelhoster-buttons-pro' ); ?></strong>
+									<?php esc_html_e( 'Unter Einstellungen → ButtonPro können globale Standardwerte für alle neuen Buttons festgelegt werden.', 'eifelhoster-buttons-pro' ); ?></li>
+							</ul>
+						</div>
+					</div>
+
 					<!-- Preview -->
 					<div id="ebp-dialog-preview-wrap">
 						<span class="ebp-preview-label">
@@ -396,7 +454,7 @@ class EBP_Editor {
 				<div id="ebp-modal-footer">
 					<button type="button" id="ebp-btn-insert" class="button button-primary">
 						<span class="dashicons dashicons-insert" style="vertical-align:middle;margin-right:4px"></span>
-						<?php esc_html_e( 'Button einfügen', 'eifelhoster-buttons-pro' ); ?>
+						<span id="ebp-btn-insert-label"><?php esc_html_e( 'Button einfügen', 'eifelhoster-buttons-pro' ); ?></span>
 					</button>
 					<button type="button" id="ebp-btn-cancel" class="button">
 						<?php esc_html_e( 'Abbrechen', 'eifelhoster-buttons-pro' ); ?>

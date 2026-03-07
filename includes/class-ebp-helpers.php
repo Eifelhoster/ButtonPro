@@ -41,6 +41,7 @@ function ebp_get_defaults() {
 		'shadow_blur'      => '4',
 		'shadow_spread'    => '0',
 		'shadow_color'     => 'rgba(0,0,0,0.3)',
+		'button_width'     => '0',
 		'link_type'        => 'url',
 		'url'              => '',
 		'email'            => '',

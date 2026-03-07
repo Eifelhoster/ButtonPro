@@ -341,3 +341,46 @@
 .ebp-dialog-color + .wp-color-result {
 	margin: 0;
 }
+
+/* ============================================================
+   Help tab content
+   ============================================================ */
+
+.ebp-help-content {
+	font-size: 13px;
+	line-height: 1.6;
+	color: #2c3338;
+	max-width: 560px;
+}
+.ebp-help-content h3 {
+	font-size: 13px;
+	font-weight: 600;
+	margin: 14px 0 6px;
+	color: #2271b1;
+	border-bottom: 1px solid #dcdcde;
+	padding-bottom: 4px;
+}
+.ebp-help-content h3:first-child {
+	margin-top: 0;
+}
+.ebp-help-content ol,
+.ebp-help-ul {
+	margin: 0 0 10px 20px;
+	padding: 0;
+}
+.ebp-help-content ol li,
+.ebp-help-ul li {
+	margin-bottom: 4px;
+}
+.ebp-help-dl {
+	margin: 0 0 10px 0;
+}
+.ebp-help-dl dt {
+	font-weight: 600;
+	margin-top: 6px;
+	color: #3c434a;
+}
+.ebp-help-dl dd {
+	margin: 2px 0 2px 16px;
+	color: #50575e;
+}

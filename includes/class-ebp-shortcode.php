@@ -67,6 +67,7 @@ class EBP_Shortcode {
 			'shadow_blur'      => $defaults['shadow_blur'],
 			'shadow_spread'    => $defaults['shadow_spread'],
 			'shadow_color'     => $defaults['shadow_color'],
+			'button_width'     => $defaults['button_width'],
 			'link_type'        => $defaults['link_type'],
 			'url'              => $defaults['url'],
 			'email'            => $defaults['email'],
@@ -129,6 +130,9 @@ class EBP_Shortcode {
 		$inline['background-color'] = ebp_sanitize_css_color( $a['bg_color'] );
 		$inline['color']            = ebp_sanitize_css_color( $a['text_color'] );
 		$inline['padding']          = absint( $a['padding_v'] ) . 'px ' . absint( $a['padding_h'] ) . 'px';
+		if ( absint( $a['button_width'] ) > 0 ) {
+			$inline['width'] = absint( $a['button_width'] ) . 'px';
+		}
 		$inline['border-width']     = absint( $a['border_width'] ) . 'px';
 		$inline['border-style']     = in_array( $a['border_style'], array( 'solid','dashed','dotted','double','none' ), true )
 			? $a['border_style'] : 'solid';

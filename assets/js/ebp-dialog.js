@@ -1,22 +1,38 @@
 /**
  * Dialog UI for Eifelhoster Buttons Pro.
  *
- * Provides  window.ebpOpenDialog( editor )  which is called by the TinyMCE plugin.
+ * Provides  window.ebpOpenDialog( editor, existingAttrs, bookmark )  which is
+ * called by the TinyMCE plugin.
+ * - existingAttrs: null for new insert, or an object of shortcode attrs for editing.
+ * - bookmark:      a TinyMCE bookmark saved before opening, used to restore the
+ *                  selection when replacing an existing shortcode.
  */
 /* global jQuery, ebpData, wp */
 (function ( $ ) {
 	'use strict';
 
-	var currentEditor = null;
+	var currentEditor   = null;
+	var currentBookmark = null;
+	var isEditing       = false;
 	var mediaFrameIcon  = null;
 	var mediaFrameLink  = null;
 
 	// -------------------------------------------------------------------------
 	// Public API
 	// -------------------------------------------------------------------------
-	window.ebpOpenDialog = function ( editor ) {
-		currentEditor = editor;
+	window.ebpOpenDialog = function ( editor, existingAttrs, bookmark ) {
+		currentEditor   = editor;
+		currentBookmark = bookmark || null;
+		isEditing       = !! existingAttrs;
 		ebpResetForm();
+		if ( isEditing ) {
+			ebpPopulateForm( existingAttrs );
+		}
+		$( '#ebp-btn-insert-label' ).text(
+			isEditing
+				? ( ebpData.i18n.update  || 'Button aktualisieren' )
+				: ( ebpData.i18n.insert  || 'Button einfügen' )
+		);
 		$( '#ebp-modal-overlay' ).fadeIn( 150 );
 		$( '#ebp-f-text' ).trigger( 'focus' );
 	};
@@ -165,6 +181,7 @@
 		$( '#ebp-f-font-italic' ).prop( 'checked', d.font_italic === '1' );
 		$( '#ebp-f-padding-v' ).val( d.padding_v );
 		$( '#ebp-f-padding-h' ).val( d.padding_h );
+		$( '#ebp-f-button-width' ).val( d.button_width || '0' );
 
 		// Colors tab.
 		ebpSetColor( '#ebp-f-bg-color',         d.bg_color );
@@ -236,6 +253,113 @@
 	}
 
 	// -------------------------------------------------------------------------
+	// Populate form from an existing shortcode's attribute object (edit mode)
+	// -------------------------------------------------------------------------
+	function ebpPopulateForm( attrs ) {
+		// Simple text/number inputs (underscore → hyphen in ID).
+		var textFields = [
+			'text', 'font_family', 'font_size', 'padding_v', 'padding_h', 'button_width',
+			'icon_size', 'icon_spacing', 'border_width', 'border_radius',
+			'shadow_x', 'shadow_y', 'shadow_blur', 'shadow_spread', 'shadow_color',
+			'url', 'email', 'email_subject', 'email_body',
+		];
+		textFields.forEach( function ( key ) {
+			if ( attrs[ key ] !== undefined ) {
+				$( '#ebp-f-' + key.replace( /_/g, '-' ) ).val( attrs[ key ] );
+			}
+		} );
+
+		// Checkboxes.
+		if ( attrs.font_bold !== undefined ) {
+			$( '#ebp-f-font-bold' ).prop( 'checked', attrs.font_bold === '1' );
+		}
+		if ( attrs.font_italic !== undefined ) {
+			$( '#ebp-f-font-italic' ).prop( 'checked', attrs.font_italic === '1' );
+		}
+		if ( attrs.shadow_enabled !== undefined ) {
+			var shadowOn = attrs.shadow_enabled === '1';
+			$( '#ebp-f-shadow-enabled' ).prop( 'checked', shadowOn );
+			$( '#ebp-dlg-shadow-fields' ).toggle( shadowOn );
+		}
+
+		// Color pickers.
+		var colorFields = [ 'bg_color', 'bg_hover_color', 'text_color', 'text_hover_color', 'border_color' ];
+		colorFields.forEach( function ( key ) {
+			if ( attrs[ key ] !== undefined ) {
+				ebpSetColor( '#ebp-f-' + key.replace( /_/g, '-' ), attrs[ key ] );
+			}
+		} );
+
+		// Hover grow (synced with range).
+		if ( attrs.hover_grow !== undefined ) {
+			$( '#ebp-f-hover-grow' ).val( attrs.hover_grow );
+			$( '#ebp-f-hover-grow-range' ).val( attrs.hover_grow );
+		}
+
+		// Border style select.
+		if ( attrs.border_style !== undefined ) {
+			$( '#ebp-f-border-style' ).val( attrs.border_style );
+		}
+
+		// Radio buttons.
+		if ( attrs.icon_type !== undefined ) {
+			$( 'input[name="ebp-icon-type"][value="' + attrs.icon_type + '"]' ).prop( 'checked', true );
+			$( '#ebp-dlg-row-dashicon' ).toggle( attrs.icon_type === 'dashicon' );
+			$( '#ebp-dlg-row-media-icon' ).toggle( attrs.icon_type === 'media' );
+		}
+		if ( attrs.icon_position !== undefined ) {
+			$( 'input[name="ebp-icon-pos"][value="' + attrs.icon_position + '"]' ).prop( 'checked', true );
+		}
+		if ( attrs.link_type !== undefined ) {
+			$( 'input[name="ebp-link-type"][value="' + attrs.link_type + '"]' ).prop( 'checked', true );
+			ebpToggleLinkFields( attrs.link_type );
+		}
+		if ( attrs.target !== undefined ) {
+			$( 'input[name="ebp-target"][value="' + attrs.target + '"]' ).prop( 'checked', true );
+		}
+
+		// Dashicon preview.
+		if ( attrs.icon !== undefined ) {
+			$( '#ebp-f-icon' ).val( attrs.icon );
+			if ( attrs.icon ) {
+				$( '#ebp-dlg-icon-preview' ).html(
+					'<span class="dashicons dashicons-' + ebpEscHtml( attrs.icon ) +
+					'" style="font-size:24px;width:24px;height:24px"></span>' +
+					' <span style="font-size:11px;color:#666">' + ebpEscHtml( attrs.icon ) + '</span>'
+				);
+				// Mark selected icon in the grid.
+				$( '#ebp-dlg-icon-grid .ebp-icon-item' ).removeClass( 'selected' );
+				$( '#ebp-dlg-icon-grid .ebp-icon-item[title="' + attrs.icon + '"]' ).addClass( 'selected' );
+			}
+		}
+
+		// Media icon preview.
+		if ( attrs.icon_media_url !== undefined ) {
+			$( '#ebp-f-icon-media-url' ).val( attrs.icon_media_url );
+			if ( attrs.icon_media_url ) {
+				$( '#ebp-dlg-icon-media-preview' ).html(
+					'<img src="' + ebpEscHtml( attrs.icon_media_url ) +
+					'" style="max-height:48px;margin-top:4px" />'
+				);
+			}
+		}
+
+		// Media link preview.
+		if ( attrs.media_url !== undefined ) {
+			$( '#ebp-f-media-url' ).val( attrs.media_url );
+			if ( attrs.media_url ) {
+				$( '#ebp-dlg-media-preview' ).html(
+					'<span class="dashicons dashicons-media-default" style="vertical-align:middle"></span> ' +
+					'<a href="' + ebpEscHtml( attrs.media_url ) + '" target="_blank" rel="noopener">' +
+					ebpEscHtml( attrs.media_url ) + '</a>'
+				);
+			}
+		}
+
+		ebpUpdatePreview();
+	}
+
+	// -------------------------------------------------------------------------
 	// Helper: set WP colour picker value
 	// -------------------------------------------------------------------------
 	function ebpSetColor( selector, value ) {
@@ -276,7 +400,14 @@
 			sc += ' ' + k + '="' + v.replace( /"/g, '&quot;' ) + '"';
 		} );
 		sc += ']';
-		currentEditor.insertContent( sc );
+
+		if ( isEditing && currentBookmark ) {
+			// Restore the saved selection (covers the existing shortcode) then replace it.
+			currentEditor.selection.moveToBookmark( currentBookmark );
+			currentEditor.selection.setContent( sc );
+		} else {
+			currentEditor.insertContent( sc );
+		}
 		ebpCloseDialog();
 	}
 
@@ -302,6 +433,7 @@
 			hover_grow       : $( '#ebp-f-hover-grow' ).val(),
 			padding_v        : $( '#ebp-f-padding-v' ).val(),
 			padding_h        : $( '#ebp-f-padding-h' ).val(),
+			button_width     : $( '#ebp-f-button-width' ).val() || '0',
 			icon_type        : iconType,
 			icon             : $( '#ebp-f-icon' ).val(),
 			icon_media_url   : $( '#ebp-f-icon-media-url' ).val(),
@@ -363,6 +495,9 @@
 			'color'           : attrs.text_color,
 			'padding'         : ( parseInt( attrs.padding_v, 10 ) || 10 ) + 'px ' +
 			                    ( parseInt( attrs.padding_h, 10 ) || 20 ) + 'px',
+			'width'           : ( parseInt( attrs.button_width, 10 ) > 0 )
+			                        ? ( parseInt( attrs.button_width, 10 ) + 'px' )
+			                        : '',
 			'border-width'    : ( parseInt( attrs.border_width, 10 ) || 0 ) + 'px',
 			'border-style'    : attrs.border_style || 'solid',
 			'border-color'    : attrs.border_color,
