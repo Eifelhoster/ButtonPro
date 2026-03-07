@@ -239,9 +239,11 @@ class EBP_Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'icon_media_url',
 			array(
-				'label'     => __( 'Symbol-Bild URL', 'eifelhoster-buttons-pro' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => $d['icon_media_url'],
+				'label'     => __( 'Symbol-Bild', 'eifelhoster-buttons-pro' ),
+				'type'      => Controls_Manager::MEDIA,
+				'default'   => array(
+					'url' => $d['icon_media_url'],
+				),
 				'condition' => array( 'icon_type' => 'media' ),
 			)
 		);
@@ -484,12 +486,24 @@ class EBP_Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'content_search',
+			array(
+				'label'       => __( 'Inhalt suchen', 'eifelhoster-buttons-pro' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => '',
+				'placeholder' => __( 'Suche (min. 2 Zeichen)…', 'eifelhoster-buttons-pro' ),
+				'description' => __( 'Tippen um Seiten/Beiträge zu suchen und auszuwählen.', 'eifelhoster-buttons-pro' ),
+				'condition'   => array( 'link_type' => 'content' ),
+			)
+		);
+
+		$this->add_control(
 			'content_id',
 			array(
 				'label'       => __( 'Inhalt (Post/Seite ID)', 'eifelhoster-buttons-pro' ),
 				'type'        => Controls_Manager::NUMBER,
 				'default'     => '',
-				'description' => __( 'ID einer Seite, eines Beitrags oder eines Custom Post Types', 'eifelhoster-buttons-pro' ),
+				'description' => __( 'Wird automatisch beim Auswählen aus den Suchergebnissen gesetzt.', 'eifelhoster-buttons-pro' ),
 				'condition'   => array( 'link_type' => 'content' ),
 			)
 		);
@@ -514,6 +528,13 @@ class EBP_Elementor_Widget extends Widget_Base {
 		$settings = $this->get_settings_for_display();
 
 		// Map Elementor settings to shortcode attribute array.
+		// Extract URL from MEDIA control (returns array) with fallback for legacy string values.
+		$icon_media_setting = isset( $settings['icon_media_url'] ) ? $settings['icon_media_url'] : '';
+		if ( is_array( $icon_media_setting ) ) {
+			$icon_media_url = isset( $icon_media_setting['url'] ) ? $icon_media_setting['url'] : '';
+		} else {
+			$icon_media_url = (string) $icon_media_setting;
+		}
 		$attrs = array(
 			'text'             => isset( $settings['text'] ) ? $settings['text'] : 'Button',
 			'font_family'      => isset( $settings['font_family'] ) ? $settings['font_family'] : 'inherit',
@@ -530,7 +551,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			'padding_h'        => isset( $settings['padding_h'] ) ? (string) $settings['padding_h'] : '20',
 			'icon_type'        => isset( $settings['icon_type'] ) ? $settings['icon_type'] : 'none',
 			'icon'             => isset( $settings['icon'] ) ? $settings['icon'] : '',
-			'icon_media_url'   => isset( $settings['icon_media_url'] ) ? $settings['icon_media_url'] : '',
+			'icon_media_url'   => $icon_media_url,
 			'icon_size'        => isset( $settings['icon_size'] ) ? (string) $settings['icon_size'] : '32',
 			'icon_spacing'     => isset( $settings['icon_spacing'] ) ? (string) $settings['icon_spacing'] : '24',
 			'icon_position'    => isset( $settings['icon_position'] ) ? $settings['icon_position'] : 'before',
@@ -594,6 +615,20 @@ class EBP_Elementor_Widget extends Widget_Base {
 			: 'none';
 		var widthStyle  = buttonWidth > 0 ? buttonWidth + 'px' : '';
 
+		var iconType     = settings.icon_type || 'none';
+		var iconSize     = parseInt( settings.icon_size, 10 ) || 32;
+		var iconSpacing  = parseInt( settings.icon_spacing, 10 ) || 24;
+		var iconPosition = settings.icon_position || 'before';
+
+		var iconMediaUrl = '';
+		if ( settings.icon_media_url && settings.icon_media_url.url ) {
+			iconMediaUrl = settings.icon_media_url.url;
+		} else if ( typeof settings.icon_media_url === 'string' ) {
+			iconMediaUrl = settings.icon_media_url;
+		}
+
+		var gapStyle = iconType !== 'none' ? 'gap:' + iconSpacing + 'px;' : '';
+
 		var styleStr = 'display:inline-flex;align-items:center;justify-content:center;'
 			+ 'text-decoration:none;cursor:pointer;'
 			+ 'font-family:' + fontFamily + ';'
@@ -608,9 +643,21 @@ class EBP_Elementor_Widget extends Widget_Base {
 			+ 'border-color:' + borderColor + ';'
 			+ 'border-radius:' + borderRadius + 'px;'
 			+ 'box-shadow:' + boxShadow + ';'
-			+ ( widthStyle ? 'width:' + widthStyle + ';' : '' );
+			+ ( widthStyle ? 'width:' + widthStyle + ';' : '' )
+			+ gapStyle;
+
+		var iconHtml = '';
+		if ( iconType === 'dashicon' && settings.icon ) {
+			iconHtml = '<span class="dashicons dashicons-' + settings.icon + '" style="font-size:' + iconSize + 'px;width:' + iconSize + 'px;height:' + iconSize + 'px;" aria-hidden="true"></span>';
+		} else if ( iconType === 'media' && iconMediaUrl ) {
+			iconHtml = '<img src="' + iconMediaUrl + '" style="width:' + iconSize + 'px;height:' + iconSize + 'px;" alt="" aria-hidden="true" />';
+		}
 		#>
-		<a href="#" style="{{ styleStr }}">{{ text }}</a>
+		<# if ( iconPosition === 'before' ) { #>
+		<a href="#" style="{{ styleStr }}">{{{ iconHtml }}}{{ text }}</a>
+		<# } else { #>
+		<a href="#" style="{{ styleStr }}">{{ text }}{{{ iconHtml }}}</a>
+		<# } #>
 		<?php
 	}
 }

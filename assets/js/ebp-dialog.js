@@ -10,13 +10,25 @@
 	var currentEditor = null;
 	var mediaFrameIcon  = null;
 	var mediaFrameLink  = null;
+	var isEditing       = false;
 
 	// -------------------------------------------------------------------------
 	// Public API
 	// -------------------------------------------------------------------------
 	window.ebpOpenDialog = function ( editor ) {
 		currentEditor = editor;
-		ebpResetForm();
+		isEditing = false;
+
+		var found = ebpGetShortcodeAtCursor( editor );
+		if ( found ) {
+			isEditing = true;
+			ebpSelectShortcodeInEditor( editor, found );
+			ebpResetForm();
+			ebpPopulateForm( ebpParseShortcodeAttrs( found.shortcode ) );
+		} else {
+			ebpResetForm();
+		}
+
 		$( '#ebp-modal-overlay' ).fadeIn( 150 );
 		$( '#ebp-f-text' ).trigger( 'focus' );
 	};
@@ -200,6 +212,145 @@
 	} );
 
 	// -------------------------------------------------------------------------
+	// Detect [eifelhoster_button …] shortcode at the cursor position
+	// -------------------------------------------------------------------------
+	function ebpGetShortcodeAtCursor( editor ) {
+		var rng  = editor.selection.getRng();
+		var node = rng.startContainer;
+
+		// Only handle text nodes.
+		if ( ! node || node.nodeType !== 3 ) {
+			return null;
+		}
+
+		var text      = node.nodeValue || '';
+		var cursorPos = rng.startOffset;
+		// The pattern matches attributes within a single line.
+		// Attribute values are HTML-encoded by esc_attr() on write, so literal `"` and
+		// `]` characters will not appear unescaped inside values.
+		var re        = /\[eifelhoster_button(?:\s[^\]]*)?\]/g;
+		var m;
+
+		while ( ( m = re.exec( text ) ) !== null ) {
+			if ( m.index <= cursorPos && cursorPos <= m.index + m[0].length ) {
+				return {
+					node     : node,
+					start    : m.index,
+					end      : m.index + m[0].length,
+					shortcode: m[0],
+				};
+			}
+		}
+		return null;
+	}
+
+	// -------------------------------------------------------------------------
+	// Select the shortcode range in the editor so setContent() replaces it
+	// -------------------------------------------------------------------------
+	function ebpSelectShortcodeInEditor( editor, info ) {
+		var rng = editor.dom.createRng();
+		rng.setStart( info.node, info.start );
+		rng.setEnd( info.node, info.end );
+		editor.selection.setRng( rng );
+	}
+
+	// -------------------------------------------------------------------------
+	// Parse shortcode attribute string into a plain object.
+	// Attribute values are written with esc_attr() so they never contain a
+	// literal `"`, making the simple `[^"]*` capture safe.
+	// -------------------------------------------------------------------------
+	function ebpParseShortcodeAttrs( sc ) {
+		var attrs = {};
+		var re    = /(\w+)="([^"]*)"/g;
+		var m;
+		while ( ( m = re.exec( sc ) ) !== null ) {
+			attrs[ m[1] ] = m[2];
+		}
+		return attrs;
+	}
+
+	// -------------------------------------------------------------------------
+	// Populate form fields from a parsed attribute object
+	// -------------------------------------------------------------------------
+	function ebpPopulateForm( attrs ) {
+		if ( attrs.text )           { $( '#ebp-f-text' ).val( attrs.text ); }
+		if ( attrs.font_family )    { $( '#ebp-f-font-family' ).val( attrs.font_family ); }
+		if ( attrs.font_size )      { $( '#ebp-f-font-size' ).val( attrs.font_size ); }
+		if ( attrs.font_bold !== undefined ) {
+			$( '#ebp-f-font-bold' ).prop( 'checked', attrs.font_bold === '1' );
+		}
+		if ( attrs.font_italic !== undefined ) {
+			$( '#ebp-f-font-italic' ).prop( 'checked', attrs.font_italic === '1' );
+		}
+		if ( attrs.padding_v )      { $( '#ebp-f-padding-v' ).val( attrs.padding_v ); }
+		if ( attrs.padding_h )      { $( '#ebp-f-padding-h' ).val( attrs.padding_h ); }
+		if ( attrs.button_width !== undefined ) { $( '#ebp-f-button-width' ).val( attrs.button_width ); }
+
+		if ( attrs.bg_color )         { ebpSetColor( '#ebp-f-bg-color',         attrs.bg_color ); }
+		if ( attrs.bg_hover_color )   { ebpSetColor( '#ebp-f-bg-hover-color',   attrs.bg_hover_color ); }
+		if ( attrs.text_color )       { ebpSetColor( '#ebp-f-text-color',       attrs.text_color ); }
+		if ( attrs.text_hover_color ) { ebpSetColor( '#ebp-f-text-hover-color', attrs.text_hover_color ); }
+		if ( attrs.hover_grow ) {
+			$( '#ebp-f-hover-grow' ).val( attrs.hover_grow );
+			$( '#ebp-f-hover-grow-range' ).val( attrs.hover_grow );
+		}
+
+		if ( attrs.icon_type ) {
+			$( 'input[name="ebp-icon-type"][value="' + attrs.icon_type + '"]' ).prop( 'checked', true );
+			$( '#ebp-dlg-row-dashicon' ).toggle( attrs.icon_type === 'dashicon' );
+			$( '#ebp-dlg-row-media-icon' ).toggle( attrs.icon_type === 'media' );
+		}
+		if ( attrs.icon ) { $( '#ebp-f-icon' ).val( attrs.icon ); }
+		if ( attrs.icon_media_url ) {
+			$( '#ebp-f-icon-media-url' ).val( attrs.icon_media_url );
+			$( '#ebp-dlg-icon-media-preview' ).html(
+				'<img src="' + ebpEscHtml( attrs.icon_media_url ) + '" style="max-height:48px;margin-top:4px" />'
+			);
+		}
+		if ( attrs.icon_size )    { $( '#ebp-f-icon-size' ).val( attrs.icon_size ); }
+		if ( attrs.icon_spacing ) { $( '#ebp-f-icon-spacing' ).val( attrs.icon_spacing ); }
+		if ( attrs.icon_position ) {
+			$( 'input[name="ebp-icon-pos"][value="' + attrs.icon_position + '"]' ).prop( 'checked', true );
+		}
+
+		if ( attrs.border_width ) { $( '#ebp-f-border-width' ).val( attrs.border_width ); }
+		if ( attrs.border_style ) { $( '#ebp-f-border-style' ).val( attrs.border_style ); }
+		if ( attrs.border_color ) { ebpSetColor( '#ebp-f-border-color', attrs.border_color ); }
+		if ( attrs.border_radius !== undefined ) { $( '#ebp-f-border-radius' ).val( attrs.border_radius ); }
+		if ( attrs.shadow_enabled !== undefined ) {
+			$( '#ebp-f-shadow-enabled' ).prop( 'checked', attrs.shadow_enabled === '1' );
+			$( '#ebp-dlg-shadow-fields' ).toggle( attrs.shadow_enabled === '1' );
+		}
+		if ( attrs.shadow_x )      { $( '#ebp-f-shadow-x' ).val( attrs.shadow_x ); }
+		if ( attrs.shadow_y )      { $( '#ebp-f-shadow-y' ).val( attrs.shadow_y ); }
+		if ( attrs.shadow_blur )   { $( '#ebp-f-shadow-blur' ).val( attrs.shadow_blur ); }
+		if ( attrs.shadow_spread ) { $( '#ebp-f-shadow-spread' ).val( attrs.shadow_spread ); }
+		if ( attrs.shadow_color )  { ebpSetColor( '#ebp-f-shadow-color', attrs.shadow_color ); }
+
+		if ( attrs.link_type ) {
+			$( 'input[name="ebp-link-type"][value="' + attrs.link_type + '"]' ).prop( 'checked', true );
+			ebpToggleLinkFields( attrs.link_type );
+		}
+		if ( attrs.url )           { $( '#ebp-f-url' ).val( attrs.url ); }
+		if ( attrs.email )         { $( '#ebp-f-email' ).val( attrs.email ); }
+		if ( attrs.email_subject ) { $( '#ebp-f-email-subject' ).val( attrs.email_subject ); }
+		if ( attrs.email_body )    { $( '#ebp-f-email-body' ).val( attrs.email_body ); }
+		if ( attrs.media_url )     { $( '#ebp-f-media-url' ).val( attrs.media_url ); }
+		if ( attrs.content_id ) {
+			$( '#ebp-f-content-id' ).val( attrs.content_id );
+			$( '#ebp-dlg-content-selected' ).html(
+				'<span class="dashicons dashicons-yes" style="color:green;vertical-align:middle"></span> ' +
+				ebpEscHtml( attrs.content_id )
+			);
+		}
+		if ( attrs.target ) {
+			$( 'input[name="ebp-target"][value="' + attrs.target + '"]' ).prop( 'checked', true );
+		}
+
+		ebpUpdatePreview();
+	}
+
+	// -------------------------------------------------------------------------
 	// Reset / populate form with defaults
 	// -------------------------------------------------------------------------
 	function ebpResetForm() {
@@ -330,7 +481,11 @@
 			sc += ' ' + k + '="' + v.replace( /"/g, '&quot;' ) + '"';
 		} );
 		sc += ']';
-		currentEditor.insertContent( sc );
+		if ( isEditing ) {
+			currentEditor.selection.setContent( sc );
+		} else {
+			currentEditor.insertContent( sc );
+		}
 		ebpCloseDialog();
 	}
 
