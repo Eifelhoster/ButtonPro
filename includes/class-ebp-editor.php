@@ -473,7 +473,7 @@ class EBP_Editor {
 		check_ajax_referer( 'ebp_search_content', 'nonce' );
 
 		if ( ! current_user_can( 'edit_posts' ) ) {
-			wp_send_json_error( 'Insufficient permissions', 403 );
+			wp_send_json_error( 'Access denied.', 403 );
 			return;
 		}
 
