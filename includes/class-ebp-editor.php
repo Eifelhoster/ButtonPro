@@ -161,6 +161,13 @@ class EBP_Editor {
 									<input type="number" id="ebp-f-padding-h" min="0" max="200" style="width:70px" />
 								</td>
 							</tr>
+							<tr>
+								<th><?php esc_html_e( 'Buttonbreite', 'eifelhoster-buttons-pro' ); ?></th>
+								<td>
+									<input type="text" id="ebp-f-button-width" class="ebp-full-width"
+										placeholder="<?php esc_attr_e( 'z.B. 200px oder 100% (leer = automatisch)', 'eifelhoster-buttons-pro' ); ?>" />
+								</td>
+							</tr>
 						</table>
 					</div>
 

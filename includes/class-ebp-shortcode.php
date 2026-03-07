@@ -44,6 +44,7 @@ class EBP_Shortcode {
 			'font_size'        => $defaults['font_size'],
 			'font_bold'        => $defaults['font_bold'],
 			'font_italic'      => $defaults['font_italic'],
+			'button_width'     => $defaults['button_width'],
 			'bg_color'         => $defaults['bg_color'],
 			'bg_hover_color'   => $defaults['bg_hover_color'],
 			'text_color'       => $defaults['text_color'],
@@ -129,6 +130,17 @@ class EBP_Shortcode {
 		$inline['background-color'] = ebp_sanitize_css_color( $a['bg_color'] );
 		$inline['color']            = ebp_sanitize_css_color( $a['text_color'] );
 		$inline['padding']          = absint( $a['padding_v'] ) . 'px ' . absint( $a['padding_h'] ) . 'px';
+		if ( '' !== $a['button_width'] ) {
+			$width = ebp_sanitize_css_dimension( $a['button_width'] );
+			if ( '' !== $width ) {
+				// Add 'px' suffix when the value is a plain number without a unit.
+				if ( preg_match( '/^\d+(\.\d+)?$/', $width ) ) {
+					$width .= 'px';
+				}
+				$inline['width'] = $width;
+				$inline['box-sizing'] = 'border-box';
+			}
+		}
 		$inline['border-width']     = absint( $a['border_width'] ) . 'px';
 		$inline['border-style']     = in_array( $a['border_style'], array( 'solid','dashed','dotted','double','none' ), true )
 			? $a['border_style'] : 'solid';

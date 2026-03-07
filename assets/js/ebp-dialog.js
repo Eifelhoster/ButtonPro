@@ -165,6 +165,7 @@
 		$( '#ebp-f-font-italic' ).prop( 'checked', d.font_italic === '1' );
 		$( '#ebp-f-padding-v' ).val( d.padding_v );
 		$( '#ebp-f-padding-h' ).val( d.padding_h );
+		$( '#ebp-f-button-width' ).val( d.button_width || '' );
 
 		// Colors tab.
 		ebpSetColor( '#ebp-f-bg-color',         d.bg_color );
@@ -295,6 +296,7 @@
 			font_size        : $( '#ebp-f-font-size' ).val(),
 			font_bold        : $( '#ebp-f-font-bold' ).is( ':checked' ) ? '1' : '0',
 			font_italic      : $( '#ebp-f-font-italic' ).is( ':checked' ) ? '1' : '0',
+			button_width     : $( '#ebp-f-button-width' ).val(),
 			bg_color         : ebpGetColor( '#ebp-f-bg-color' ),
 			bg_hover_color   : ebpGetColor( '#ebp-f-bg-hover-color' ),
 			text_color       : ebpGetColor( '#ebp-f-text-color' ),
@@ -384,6 +386,21 @@
 
 		if ( attrs.icon_type !== 'none' ) {
 			css['gap'] = ( parseInt( attrs.icon_spacing, 10 ) || 8 ) + 'px';
+		}
+
+		if ( attrs.button_width ) {
+			var bw = attrs.button_width.trim();
+			if ( bw ) {
+				if ( /^\d+(\.\d+)?$/.test( bw ) ) {
+					bw += 'px';
+				}
+				css['width']      = bw;
+				css['box-sizing'] = 'border-box';
+			} else {
+				css['width'] = 'auto';
+			}
+		} else {
+			css['width'] = 'auto';
 		}
 
 		$btn.css( css );

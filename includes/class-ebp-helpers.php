@@ -18,6 +18,7 @@ function ebp_get_defaults() {
 		'font_size'        => '16',
 		'font_bold'        => '0',
 		'font_italic'      => '0',
+		'button_width'     => '',
 		'bg_color'         => '#007bff',
 		'bg_hover_color'   => '#0056b3',
 		'text_color'       => '#ffffff',
@@ -53,6 +54,26 @@ function ebp_get_defaults() {
 	$saved = get_option( EBP_OPTION_KEY, array() );
 
 	return wp_parse_args( $saved, $fallback );
+}
+
+/**
+ * Sanitise a CSS dimension value (e.g. "200px", "100%", "10em") so it is
+ * safe to embed in a style attribute.  Returns '' for empty / invalid input.
+ *
+ * @param  string $value Raw dimension value.
+ * @return string        Sanitised value or empty string.
+ */
+function ebp_sanitize_css_dimension( $value ) {
+	$value = trim( (string) $value );
+	if ( '' === $value ) {
+		return '';
+	}
+	// Allow plain integers (treated as px in the renderer) or values with a
+	// known unit (px, em, rem, %, vw, vh).
+	if ( preg_match( '/^\d+(\.\d+)?(px|em|rem|%|vw|vh)?$/', $value ) ) {
+		return $value;
+	}
+	return '';
 }
 
 /**

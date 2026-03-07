@@ -33,4 +33,9 @@ function ebp_init() {
 		new EBP_Admin();
 		new EBP_Editor();
 	}
+	// Load Elementor integration only when Elementor is active.
+	if ( did_action( 'elementor/loaded' ) ) {
+		require_once EBP_PLUGIN_DIR . 'includes/class-ebp-elementor.php';
+		new EBP_Elementor();
+	}
 }

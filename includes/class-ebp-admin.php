@@ -67,7 +67,7 @@ class EBP_Admin {
 		$clean = array();
 
 		$text_fields = array(
-			'font_family', 'font_size', 'icon', 'icon_media_url',
+			'font_family', 'font_size', 'button_width', 'icon', 'icon_media_url',
 			'icon_size', 'icon_spacing', 'border_width', 'border_color',
 			'border_radius', 'shadow_x', 'shadow_y', 'shadow_blur',
 			'shadow_spread', 'shadow_color', 'url', 'email',
@@ -182,6 +182,17 @@ class EBP_Admin {
 								<?php esc_html_e( 'Links/Rechts:', 'eifelhoster-buttons-pro' ); ?>
 								<input type="number" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[padding_h]"
 									value="<?php echo esc_attr( $d['padding_h'] ); ?>" min="0" max="200" class="small-text" />
+							</td>
+						</tr>
+						<tr>
+							<th><?php esc_html_e( 'Buttonbreite', 'eifelhoster-buttons-pro' ); ?></th>
+							<td>
+								<input type="text" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[button_width]"
+									value="<?php echo esc_attr( $d['button_width'] ); ?>" class="regular-text"
+									placeholder="<?php esc_attr_e( 'z.B. 200px oder 100% (leer = automatisch)', 'eifelhoster-buttons-pro' ); ?>" />
+								<p class="description">
+									<?php esc_html_e( 'Leer lassen = Breite passt sich dem Inhalt an.', 'eifelhoster-buttons-pro' ); ?>
+								</p>
 							</td>
 						</tr>
 					</table>
@@ -486,6 +497,28 @@ class EBP_Admin {
 						'<a href="https://eifelhoster.de" target="_blank" rel="noopener">eifelhoster.de · Michael Krämer</a>'
 					); ?>
 				</p>
+			</div>
+
+			<!-- Hilfe & Dokumentation -->
+			<div class="ebp-help-box">
+				<h2>
+					<span class="dashicons dashicons-editor-help" style="font-size:20px;vertical-align:middle;margin-right:6px"></span>
+					<?php esc_html_e( 'Hilfe & Anleitung', 'eifelhoster-buttons-pro' ); ?>
+				</h2>
+				<p><?php esc_html_e( 'Hier lernst du, wie du Buttons in deine Seite einfügst.', 'eifelhoster-buttons-pro' ); ?></p>
+				<ol>
+					<li><?php esc_html_e( 'Öffne einen Beitrag oder eine Seite im Classic Editor.', 'eifelhoster-buttons-pro' ); ?></li>
+					<li><?php esc_html_e( 'Klicke auf das Button-Symbol in der Symbolleiste des Editors.', 'eifelhoster-buttons-pro' ); ?></li>
+					<li><?php esc_html_e( 'Passe den Button-Text, die Farben und den Link im Dialog an.', 'eifelhoster-buttons-pro' ); ?></li>
+					<li><?php esc_html_e( 'Klicke auf „Button einfügen" – fertig!', 'eifelhoster-buttons-pro' ); ?></li>
+				</ol>
+				<h3><?php esc_html_e( 'Einstellungen auf dieser Seite', 'eifelhoster-buttons-pro' ); ?></h3>
+				<p><?php esc_html_e( 'Die Werte hier sind Standardwerte. Sie werden automatisch verwendet, wenn du einen neuen Button einfügst. Im Editor-Dialog kannst du jeden Wert für jeden Button einzeln ändern.', 'eifelhoster-buttons-pro' ); ?></p>
+				<h3><?php esc_html_e( 'Buttonbreite', 'eifelhoster-buttons-pro' ); ?></h3>
+				<p><?php esc_html_e( 'Leer lassen: Der Button wird so breit wie sein Text. Gib z.B. „200px" oder „100%" ein, um eine feste Breite zu setzen.', 'eifelhoster-buttons-pro' ); ?></p>
+				<h3><?php esc_html_e( 'Shortcode', 'eifelhoster-buttons-pro' ); ?></h3>
+				<p><?php esc_html_e( 'Du kannst Buttons auch direkt als Shortcode eingeben:', 'eifelhoster-buttons-pro' ); ?></p>
+				<code>[eifelhoster_button text="Jetzt klicken" url="https://beispiel.de"]</code>
 			</div>
 		</div><!-- .wrap -->
 		<?php

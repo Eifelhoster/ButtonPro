@@ -165,6 +165,7 @@
 		var shadowColor = $( 'input[name$="[shadow_color]"]' ).val() || 'rgba(0,0,0,0.3)';
 		var iconType    = $( 'input[name$="[icon_type]"]:checked' ).val()   || 'none';
 		var iconSpacing = parseInt( $( 'input[name$="[icon_spacing]"]' ).val(), 10 ) || 8;
+		var buttonWidth = $( 'input[name$="[button_width]"]' ).val() || '';
 
 		var css = {
 			'display'         : 'inline-flex',
@@ -191,6 +192,21 @@
 
 		if ( iconType !== 'none' ) {
 			css['gap'] = iconSpacing + 'px';
+		}
+
+		if ( buttonWidth ) {
+			var bw = buttonWidth.trim();
+			if ( bw ) {
+				if ( /^\d+(\.\d+)?$/.test( bw ) ) {
+					bw += 'px';
+				}
+				css['width']      = bw;
+				css['box-sizing'] = 'border-box';
+			} else {
+				css['width'] = 'auto';
+			}
+		} else {
+			css['width'] = 'auto';
 		}
 
 		$preview.css( css );
