@@ -11,12 +11,31 @@ class EBP_Elementor {
 
 	public function __construct() {
 		add_action( 'elementor/init', array( $this, 'init' ) );
+		add_action( 'elementor/editor/after_enqueue_scripts', array( $this, 'enqueue_editor_scripts' ) );
 	}
 
 	public function init() {
 		require_once EBP_PLUGIN_DIR . 'includes/class-ebp-elementor-widget.php';
 		add_action( 'elementor/widgets/register', array( $this, 'register_widget' ) );
 		add_action( 'elementor/elements/categories_registered', array( $this, 'register_category' ) );
+	}
+
+	/** Enqueue custom editor JS for the Elementor panel (content search, etc.). */
+	public function enqueue_editor_scripts() {
+		wp_enqueue_script(
+			'ebp-elementor-editor',
+			EBP_PLUGIN_URL . 'assets/js/ebp-elementor-editor.js',
+			array( 'jquery' ),
+			EBP_VERSION,
+			true
+		);
+		wp_localize_script( 'ebp-elementor-editor', 'ebpElData', array(
+			'ajaxurl'   => admin_url( 'admin-ajax.php' ),
+			'nonce'     => wp_create_nonce( 'ebp_search_content' ),
+			'i18n'      => array(
+				'noResults' => __( 'Keine Ergebnisse', 'eifelhoster-buttons-pro' ),
+			),
+		) );
 	}
 
 	public function register_category( $elements_manager ) {

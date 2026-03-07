@@ -8,6 +8,7 @@
 	'use strict';
 
 	var currentEditor = null;
+	var isEditing     = false;
 	var mediaFrameIcon  = null;
 	var mediaFrameLink  = null;
 
@@ -16,7 +17,26 @@
 	// -------------------------------------------------------------------------
 	window.ebpOpenDialog = function ( editor ) {
 		currentEditor = editor;
+		isEditing     = false;
 		ebpResetForm();
+		$( '#ebp-modal-overlay' ).fadeIn( 150 );
+		$( '#ebp-f-text' ).trigger( 'focus' );
+	};
+
+	/**
+	 * Open the dialog pre-populated with an existing shortcode's attributes.
+	 * The caller must have already selected the shortcode text in the editor
+	 * so that saving with selection.setContent() replaces it in-place.
+	 *
+	 * @param {Object} editor        TinyMCE editor instance.
+	 * @param {string} shortcodeStr  The full raw shortcode string, e.g. [eifelhoster_button ...].
+	 */
+	window.ebpOpenDialogEdit = function ( editor, shortcodeStr ) {
+		currentEditor = editor;
+		isEditing     = true;
+		var attrs = ebpParseShortcodeAttrs( shortcodeStr );
+		ebpResetForm();
+		ebpPopulateFormFromAttrs( attrs );
 		$( '#ebp-modal-overlay' ).fadeIn( 150 );
 		$( '#ebp-f-text' ).trigger( 'focus' );
 	};
@@ -315,6 +335,7 @@
 	function ebpCloseDialog() {
 		$( '#ebp-modal-overlay' ).fadeOut( 150 );
 		currentEditor = null;
+		isEditing     = false;
 	}
 
 	// -------------------------------------------------------------------------
@@ -330,7 +351,12 @@
 			sc += ' ' + k + '="' + v.replace( /"/g, '&quot;' ) + '"';
 		} );
 		sc += ']';
-		currentEditor.insertContent( sc );
+		if ( isEditing ) {
+			// Replace the previously selected shortcode text in-place.
+			currentEditor.selection.setContent( sc );
+		} else {
+			currentEditor.insertContent( sc );
+		}
 		ebpCloseDialog();
 	}
 
@@ -466,6 +492,135 @@
 			$( '#ebp-preview-btn .ebp-preview-icon-before' ).html( '' );
 			$( '#ebp-preview-btn .ebp-preview-icon-after' ).html( iconHtml );
 		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Parse a [eifelhoster_button key="value" ...] shortcode into an attr object
+	// -------------------------------------------------------------------------
+	function ebpParseShortcodeAttrs( sc ) {
+		var attrs = {};
+		// Match key="value" pairs (double-quoted, as the plugin always writes them).
+		var re = /(\w+)="([^"]*)"/g;
+		var m;
+		while ( ( m = re.exec( sc ) ) !== null ) {
+			// Decode HTML entities that were encoded when the shortcode was built.
+			attrs[ m[1] ] = ebpDecodeHtmlEntities( m[2] );
+		}
+		return attrs;
+	}
+
+	// Decode HTML entities so form fields show the original user input, not
+	// the encoded variants (e.g. &quot; → ", &amp; → &).
+	function ebpDecodeHtmlEntities( str ) {
+		var el = document.createElement( 'textarea' );
+		el.innerHTML = str;
+		return el.value;
+	}
+
+	// -------------------------------------------------------------------------
+	// Populate form fields from a parsed attributes object (edit mode)
+	// -------------------------------------------------------------------------
+	function ebpPopulateFormFromAttrs( attrs ) {
+		// Text & Font tab.
+		if ( attrs.text         !== undefined ) $( '#ebp-f-text' ).val( attrs.text );
+		if ( attrs.font_family  !== undefined ) $( '#ebp-f-font-family' ).val( attrs.font_family );
+		if ( attrs.font_size    !== undefined ) $( '#ebp-f-font-size' ).val( attrs.font_size );
+		if ( attrs.font_bold    !== undefined ) $( '#ebp-f-font-bold' ).prop( 'checked', attrs.font_bold === '1' );
+		if ( attrs.font_italic  !== undefined ) $( '#ebp-f-font-italic' ).prop( 'checked', attrs.font_italic === '1' );
+		if ( attrs.padding_v    !== undefined ) $( '#ebp-f-padding-v' ).val( attrs.padding_v );
+		if ( attrs.padding_h    !== undefined ) $( '#ebp-f-padding-h' ).val( attrs.padding_h );
+		if ( attrs.button_width !== undefined ) $( '#ebp-f-button-width' ).val( attrs.button_width );
+
+		// Colors tab.
+		if ( attrs.bg_color         !== undefined ) ebpSetColor( '#ebp-f-bg-color',         attrs.bg_color );
+		if ( attrs.bg_hover_color   !== undefined ) ebpSetColor( '#ebp-f-bg-hover-color',   attrs.bg_hover_color );
+		if ( attrs.text_color       !== undefined ) ebpSetColor( '#ebp-f-text-color',       attrs.text_color );
+		if ( attrs.text_hover_color !== undefined ) ebpSetColor( '#ebp-f-text-hover-color', attrs.text_hover_color );
+		if ( attrs.hover_grow !== undefined ) {
+			$( '#ebp-f-hover-grow' ).val( attrs.hover_grow );
+			$( '#ebp-f-hover-grow-range' ).val( attrs.hover_grow );
+		}
+
+		// Icon tab.
+		if ( attrs.icon_type !== undefined ) {
+			$( 'input[name="ebp-icon-type"][value="' + attrs.icon_type + '"]' ).prop( 'checked', true );
+			$( '#ebp-dlg-row-dashicon' ).toggle( attrs.icon_type === 'dashicon' );
+			$( '#ebp-dlg-row-media-icon' ).toggle( attrs.icon_type === 'media' );
+		}
+		if ( attrs.icon !== undefined ) {
+			$( '#ebp-f-icon' ).val( attrs.icon );
+			if ( attrs.icon ) {
+				$( '#ebp-dlg-icon-preview' ).html(
+					'<span class="dashicons dashicons-' + ebpEscHtml( attrs.icon ) +
+					'" style="font-size:24px;width:24px;height:24px"></span>' +
+					' <span style="font-size:11px;color:#666">' + ebpEscHtml( attrs.icon ) + '</span>'
+				);
+			}
+		}
+		if ( attrs.icon_media_url !== undefined ) {
+			$( '#ebp-f-icon-media-url' ).val( attrs.icon_media_url );
+			if ( attrs.icon_media_url ) {
+				$( '#ebp-dlg-icon-media-preview' ).html(
+					'<img src="' + ebpEscHtml( attrs.icon_media_url ) + '" style="max-height:48px;margin-top:4px" />'
+				);
+			}
+		}
+		if ( attrs.icon_size     !== undefined ) $( '#ebp-f-icon-size' ).val( attrs.icon_size );
+		if ( attrs.icon_spacing  !== undefined ) $( '#ebp-f-icon-spacing' ).val( attrs.icon_spacing );
+		if ( attrs.icon_position !== undefined ) {
+			$( 'input[name="ebp-icon-pos"][value="' + attrs.icon_position + '"]' ).prop( 'checked', true );
+		}
+
+		// Border & Shadow tab.
+		if ( attrs.border_width  !== undefined ) $( '#ebp-f-border-width' ).val( attrs.border_width );
+		if ( attrs.border_style  !== undefined ) $( '#ebp-f-border-style' ).val( attrs.border_style );
+		if ( attrs.border_color  !== undefined ) ebpSetColor( '#ebp-f-border-color', attrs.border_color );
+		if ( attrs.border_radius !== undefined ) $( '#ebp-f-border-radius' ).val( attrs.border_radius );
+		if ( attrs.shadow_enabled !== undefined ) {
+			var shadowOn = attrs.shadow_enabled === '1';
+			$( '#ebp-f-shadow-enabled' ).prop( 'checked', shadowOn );
+			$( '#ebp-dlg-shadow-fields' ).toggle( shadowOn );
+		}
+		if ( attrs.shadow_x      !== undefined ) $( '#ebp-f-shadow-x' ).val( attrs.shadow_x );
+		if ( attrs.shadow_y      !== undefined ) $( '#ebp-f-shadow-y' ).val( attrs.shadow_y );
+		if ( attrs.shadow_blur   !== undefined ) $( '#ebp-f-shadow-blur' ).val( attrs.shadow_blur );
+		if ( attrs.shadow_spread !== undefined ) $( '#ebp-f-shadow-spread' ).val( attrs.shadow_spread );
+		if ( attrs.shadow_color  !== undefined ) ebpSetColor( '#ebp-f-shadow-color', attrs.shadow_color );
+
+		// Link & Target tab.
+		if ( attrs.link_type !== undefined ) {
+			$( 'input[name="ebp-link-type"][value="' + attrs.link_type + '"]' ).prop( 'checked', true );
+			ebpToggleLinkFields( attrs.link_type );
+		}
+		if ( attrs.url           !== undefined ) $( '#ebp-f-url' ).val( attrs.url );
+		if ( attrs.email         !== undefined ) $( '#ebp-f-email' ).val( attrs.email );
+		if ( attrs.email_subject !== undefined ) $( '#ebp-f-email-subject' ).val( attrs.email_subject );
+		if ( attrs.email_body    !== undefined ) $( '#ebp-f-email-body' ).val( attrs.email_body );
+		if ( attrs.media_url !== undefined ) {
+			$( '#ebp-f-media-url' ).val( attrs.media_url );
+			if ( attrs.media_url ) {
+				$( '#ebp-dlg-media-preview' ).html(
+					'<span class="dashicons dashicons-media-default" style="vertical-align:middle"></span> ' +
+					'<a href="' + ebpEscHtml( attrs.media_url ) + '" target="_blank" rel="noopener">' +
+					ebpEscHtml( attrs.media_url ) + '</a>'
+				);
+			}
+		}
+		if ( attrs.content_id !== undefined ) {
+			$( '#ebp-f-content-id' ).val( attrs.content_id );
+			if ( attrs.content_id ) {
+				$( '#ebp-f-content-search' ).val( '' );
+				$( '#ebp-dlg-content-selected' ).html(
+					'<span class="dashicons dashicons-yes" style="color:green;vertical-align:middle"></span> ID: ' +
+					ebpEscHtml( attrs.content_id )
+				);
+			}
+		}
+		if ( attrs.target !== undefined ) {
+			$( 'input[name="ebp-target"][value="' + attrs.target + '"]' ).prop( 'checked', true );
+		}
+
+		ebpUpdatePreview();
 	}
 
 	// -------------------------------------------------------------------------
