@@ -341,3 +341,108 @@
 .ebp-dialog-color + .wp-color-result {
 	margin: 0;
 }
+
+/* ============================================================
+   Content / Post search autocomplete
+   ============================================================ */
+
+.ebp-content-results {
+list-style: none;
+margin: 4px 0 0;
+padding: 0;
+border: 1px solid #c3c4c7;
+border-radius: 3px;
+background: #fff;
+box-shadow: 0 2px 8px rgba(0,0,0,.15);
+max-height: 200px;
+overflow-y: auto;
+position: relative;
+z-index: 100010;
+}
+.ebp-content-result-item {
+padding: 7px 10px;
+cursor: pointer;
+font-size: 13px;
+border-bottom: 1px solid #f0f0f1;
+}
+.ebp-content-result-item:last-child {
+border-bottom: none;
+}
+.ebp-content-result-item:hover {
+background: #f0f6fc;
+}
+.ebp-content-type {
+color: #646970;
+font-size: 11px;
+}
+.ebp-content-searching,
+.ebp-content-no-results {
+padding: 7px 10px;
+font-size: 12px;
+color: #646970;
+list-style: none;
+}
+.ebp-content-selected {
+margin-top: 5px;
+font-size: 12px;
+color: #2271b1;
+padding: 4px 6px;
+background: #f0f6fc;
+border-radius: 3px;
+border: 1px solid #c7dff0;
+}
+
+/* ============================================================
+   Documentation / Help panels
+   ============================================================ */
+
+.ebp-docs-wrap {
+line-height: 1.7;
+color: #2c3338;
+}
+.ebp-docs-wrap h2,
+.ebp-docs-wrap h3 {
+margin-top: 1.2em;
+margin-bottom: .4em;
+color: #1d2327;
+}
+.ebp-docs-wrap h2 {
+font-size: 16px;
+}
+.ebp-docs-wrap h3 {
+font-size: 13px;
+font-weight: 600;
+border-bottom: 1px solid #dcdcde;
+padding-bottom: 4px;
+}
+.ebp-docs-wrap ul,
+.ebp-docs-wrap ol {
+margin-left: 1.5em;
+}
+.ebp-docs-wrap li {
+margin-bottom: .3em;
+}
+.ebp-docs-code {
+font-family: Consolas, 'Courier New', monospace;
+font-size: 12px;
+background: #f6f7f7;
+border: 1px solid #dcdcde;
+border-left: 3px solid #2271b1;
+padding: 8px 12px;
+margin: 6px 0 10px;
+white-space: pre-wrap;
+word-break: break-all;
+border-radius: 0 3px 3px 0;
+}
+.ebp-docs-table th {
+font-family: Consolas, 'Courier New', monospace;
+font-size: 12px;
+font-weight: normal;
+color: #2271b1;
+background: #f0f6fc;
+width: 160px;
+}
+.ebp-docs-table td {
+font-size: 12px;
+padding: 5px 8px;
+}

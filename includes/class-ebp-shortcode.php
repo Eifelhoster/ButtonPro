@@ -73,6 +73,7 @@ class EBP_Shortcode {
 			'email_subject'    => $defaults['email_subject'],
 			'email_body'       => $defaults['email_body'],
 			'media_url'        => $defaults['media_url'],
+			'content_id'       => $defaults['content_id'],
 			'target'           => $defaults['target'],
 		), $atts, 'eifelhoster_button' );
 
@@ -89,6 +90,12 @@ class EBP_Shortcode {
 		$href = '#';
 		if ( 'url' === $a['link_type'] ) {
 			$href = esc_url( $a['url'] );
+		} elseif ( 'content' === $a['link_type'] ) {
+			$content_id = absint( $a['content_id'] );
+			if ( $content_id > 0 ) {
+				$permalink = get_permalink( $content_id );
+				$href      = $permalink ? esc_url( $permalink ) : '#';
+			}
 		} elseif ( 'email' === $a['link_type'] ) {
 			// The email address itself must NOT be percent-encoded in mailto URIs.
 			$email  = sanitize_email( $a['email'] );

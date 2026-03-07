@@ -78,7 +78,8 @@ class EBP_Admin {
 			$clean[ $field ] = isset( $input[ $field ] ) ? sanitize_text_field( $input[ $field ] ) : '';
 		}
 
-		$clean['email_body'] = isset( $input['email_body'] ) ? sanitize_textarea_field( $input['email_body'] ) : '';
+		$clean['email_body']   = isset( $input['email_body'] ) ? sanitize_textarea_field( $input['email_body'] ) : '';
+		$clean['content_id']   = isset( $input['content_id'] ) ? absint( $input['content_id'] ) : 0;
 
 		$checkboxes = array( 'font_bold', 'font_italic', 'shadow_enabled' );
 		foreach ( $checkboxes as $field ) {
@@ -89,7 +90,7 @@ class EBP_Admin {
 			'icon_type'     => array( 'none', 'dashicon', 'media' ),
 			'icon_position' => array( 'before', 'after' ),
 			'border_style'  => array( 'solid', 'dashed', 'dotted', 'double', 'none' ),
-			'link_type'     => array( 'url', 'email', 'media' ),
+			'link_type'     => array( 'url', 'email', 'media', 'content' ),
 			'target'        => array( '_self', '_blank' ),
 		);
 		foreach ( $select_fields as $field => $allowed ) {
@@ -135,6 +136,9 @@ class EBP_Admin {
 					</button>
 					<button type="button" class="ebp-tab-btn" data-tab="link">
 						<?php esc_html_e( 'Link & Ziel', 'eifelhoster-buttons-pro' ); ?>
+					</button>
+					<button type="button" class="ebp-tab-btn" data-tab="docs">
+						<?php esc_html_e( 'Dokumentation', 'eifelhoster-buttons-pro' ); ?>
 					</button>
 				</div>
 
@@ -459,6 +463,50 @@ class EBP_Admin {
 							</td>
 						</tr>
 					</table>
+				</div>
+
+
+				<!-- ===== TAB: Dokumentation ===== -->
+				<div class="ebp-tab-panel" id="ebp-tab-docs">
+					<div class="ebp-docs-wrap">
+						<h2><?php esc_html_e( 'Kurzanleitung – Eifelhoster Buttons Pro', 'eifelhoster-buttons-pro' ); ?></h2>
+						<p><?php esc_html_e( 'Mit Eifelhoster Buttons Pro können Sie grafisch gestaltete Buttons im Classic Editor, im Gutenberg-Block-Editor (Shortcode-Block) und im Elementor einfügen.', 'eifelhoster-buttons-pro' ); ?></p>
+
+						<h3><?php esc_html_e( 'Classic Editor', 'eifelhoster-buttons-pro' ); ?></h3>
+						<p><?php esc_html_e( 'Klicken Sie in der TinyMCE-Toolbar auf die Schaltfläche „⬛ Button", um den Button-Dialog zu öffnen. Konfigurieren Sie den Button und klicken Sie auf „Button einfügen".', 'eifelhoster-buttons-pro' ); ?></p>
+
+						<h3><?php esc_html_e( 'Elementor', 'eifelhoster-buttons-pro' ); ?></h3>
+						<p><?php esc_html_e( 'Suchen Sie im Elementor-Panel unter „Eifelhoster" nach dem Widget „Eifelhoster Button" und ziehen Sie es auf Ihre Seite.', 'eifelhoster-buttons-pro' ); ?></p>
+
+						<h3><?php esc_html_e( 'Shortcode', 'eifelhoster-buttons-pro' ); ?></h3>
+						<p><?php esc_html_e( 'Sie können den Button auch direkt als Shortcode einfügen:', 'eifelhoster-buttons-pro' ); ?></p>
+						<pre class="ebp-docs-code">[eifelhoster_button text="Button-Text" url="https://beispiel.de" target="_blank"]</pre>
+
+						<h3><?php esc_html_e( 'Linktypen', 'eifelhoster-buttons-pro' ); ?></h3>
+						<ul>
+							<li><strong>URL</strong> – <?php esc_html_e( 'Beliebige Web-Adresse', 'eifelhoster-buttons-pro' ); ?></li>
+							<li><strong><?php esc_html_e( 'Seite / Beitrag', 'eifelhoster-buttons-pro' ); ?></strong> – <?php esc_html_e( 'Mindestens 2 Zeichen eingeben, um eine Seite oder einen Beitrag zu suchen und auszuwählen.', 'eifelhoster-buttons-pro' ); ?></li>
+							<li><strong>E-Mail</strong> – <?php esc_html_e( 'Erzeugt einen mailto:-Link mit optionalem Betreff und Nachrichtentext', 'eifelhoster-buttons-pro' ); ?></li>
+							<li><strong><?php esc_html_e( 'Mediendatei', 'eifelhoster-buttons-pro' ); ?></strong> – <?php esc_html_e( 'Link auf eine Datei aus der WordPress-Medienbibliothek', 'eifelhoster-buttons-pro' ); ?></li>
+						</ul>
+
+						<h3><?php esc_html_e( 'Alle Shortcode-Parameter', 'eifelhoster-buttons-pro' ); ?></h3>
+						<table class="form-table ebp-form-table ebp-docs-table">
+							<tr><th>text</th><td><?php esc_html_e( 'Beschriftung des Buttons', 'eifelhoster-buttons-pro' ); ?></td></tr>
+							<tr><th>link_type</th><td>url | content | email | media</td></tr>
+							<tr><th>url</th><td><?php esc_html_e( 'Ziel-URL (bei link_type=url)', 'eifelhoster-buttons-pro' ); ?></td></tr>
+							<tr><th>content_id</th><td><?php esc_html_e( 'ID der Seite/des Beitrags (bei link_type=content)', 'eifelhoster-buttons-pro' ); ?></td></tr>
+							<tr><th>email</th><td><?php esc_html_e( 'E-Mail-Adresse (bei link_type=email)', 'eifelhoster-buttons-pro' ); ?></td></tr>
+							<tr><th>media_url</th><td><?php esc_html_e( 'Datei-URL (bei link_type=media)', 'eifelhoster-buttons-pro' ); ?></td></tr>
+							<tr><th>target</th><td>_self | _blank</td></tr>
+							<tr><th>bg_color</th><td><?php esc_html_e( 'Hintergrundfarbe', 'eifelhoster-buttons-pro' ); ?></td></tr>
+							<tr><th>text_color</th><td><?php esc_html_e( 'Textfarbe', 'eifelhoster-buttons-pro' ); ?></td></tr>
+							<tr><th>font_size</th><td><?php esc_html_e( 'Schriftgröße in px', 'eifelhoster-buttons-pro' ); ?></td></tr>
+							<tr><th>border_radius</th><td><?php esc_html_e( 'Rahmenradius in px', 'eifelhoster-buttons-pro' ); ?></td></tr>
+							<tr><th>icon_type</th><td>none | dashicon | media</td></tr>
+							<tr><th>icon</th><td><?php esc_html_e( 'Dashicon-Slug (z. B. arrow-right)', 'eifelhoster-buttons-pro' ); ?></td></tr>
+						</table>
+					</div>
 				</div>
 
 				<?php submit_button( __( 'Einstellungen speichern', 'eifelhoster-buttons-pro' ) ); ?>

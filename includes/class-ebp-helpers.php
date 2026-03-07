@@ -47,6 +47,7 @@ function ebp_get_defaults() {
 		'email_subject'    => '',
 		'email_body'       => '',
 		'media_url'        => '',
+		'content_id'       => '',
 		'target'           => '_self',
 	);
 

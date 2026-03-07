@@ -15,6 +15,7 @@ class EBP_Editor {
 		add_filter( 'mce_external_plugins',   array( $this, 'mce_plugin' ) );
 		add_filter( 'mce_buttons',            array( $this, 'mce_button' ) );
 		add_action( 'admin_footer',           array( $this, 'render_dialog' ) );
+		add_action( 'wp_ajax_ebp_search_content', array( $this, 'ajax_search_content' ) );
 	}
 
 	/** Only enqueue on post / page editing screens. */
@@ -47,23 +48,31 @@ class EBP_Editor {
 
 		$defaults = ebp_get_defaults();
 		wp_localize_script( 'ebp-dialog', 'ebpData', array(
+			'ajaxurl'   => admin_url( 'admin-ajax.php' ),
+			'nonce'     => wp_create_nonce( 'ebp_search_content' ),
 			'defaults'  => $defaults,
 			'dashicons' => ebp_get_dashicons(),
 			'i18n'      => array(
-				'title'         => __( 'Eifelhoster Button einfügen', 'eifelhoster-buttons-pro' ),
-				'insert'        => __( 'Button einfügen', 'eifelhoster-buttons-pro' ),
-				'cancel'        => __( 'Abbrechen', 'eifelhoster-buttons-pro' ),
-				'selectFile'    => __( 'Datei auswählen', 'eifelhoster-buttons-pro' ),
-				'selectMedia'   => __( 'Mediendatei auswählen', 'eifelhoster-buttons-pro' ),
-				'noIcon'        => __( 'Kein Symbol', 'eifelhoster-buttons-pro' ),
-				'searchIcon'    => __( 'Symbol suchen…', 'eifelhoster-buttons-pro' ),
-				'use'           => __( 'Verwenden', 'eifelhoster-buttons-pro' ),
-				'preview'       => __( 'Vorschau', 'eifelhoster-buttons-pro' ),
-				'tabText'       => __( 'Text & Schrift', 'eifelhoster-buttons-pro' ),
-				'tabColors'     => __( 'Farben & Hover', 'eifelhoster-buttons-pro' ),
-				'tabIcon'       => __( 'Symbol', 'eifelhoster-buttons-pro' ),
-				'tabBorder'     => __( 'Rahmen & Schatten', 'eifelhoster-buttons-pro' ),
-				'tabLink'       => __( 'Link & Ziel', 'eifelhoster-buttons-pro' ),
+				'title'           => __( 'Eifelhoster Button einfügen', 'eifelhoster-buttons-pro' ),
+				'insert'          => __( 'Button einfügen', 'eifelhoster-buttons-pro' ),
+				'cancel'          => __( 'Abbrechen', 'eifelhoster-buttons-pro' ),
+				'selectFile'      => __( 'Datei auswählen', 'eifelhoster-buttons-pro' ),
+				'selectMedia'     => __( 'Mediendatei auswählen', 'eifelhoster-buttons-pro' ),
+				'noIcon'          => __( 'Kein Symbol', 'eifelhoster-buttons-pro' ),
+				'searchIcon'      => __( 'Symbol suchen…', 'eifelhoster-buttons-pro' ),
+				'use'             => __( 'Verwenden', 'eifelhoster-buttons-pro' ),
+				'preview'         => __( 'Vorschau', 'eifelhoster-buttons-pro' ),
+				'tabText'         => __( 'Text & Schrift', 'eifelhoster-buttons-pro' ),
+				'tabColors'       => __( 'Farben & Hover', 'eifelhoster-buttons-pro' ),
+				'tabIcon'         => __( 'Symbol', 'eifelhoster-buttons-pro' ),
+				'tabBorder'       => __( 'Rahmen & Schatten', 'eifelhoster-buttons-pro' ),
+				'tabLink'         => __( 'Link & Ziel', 'eifelhoster-buttons-pro' ),
+				'tabDocs'         => __( 'Hilfe', 'eifelhoster-buttons-pro' ),
+				'searchContent'   => __( 'Seite/Beitrag suchen', 'eifelhoster-buttons-pro' ),
+				'searchPlaceholder' => __( 'Mindestens 2 Zeichen eingeben…', 'eifelhoster-buttons-pro' ),
+				'searching'       => __( 'Suche…', 'eifelhoster-buttons-pro' ),
+				'noResults'       => __( 'Keine Ergebnisse gefunden.', 'eifelhoster-buttons-pro' ),
+				'selected'        => __( 'Ausgewählt:', 'eifelhoster-buttons-pro' ),
 			),
 		) );
 	}
@@ -119,6 +128,9 @@ class EBP_Editor {
 					</button>
 					<button type="button" class="ebp-modal-tab" data-tab="link">
 						<?php esc_html_e( 'Link & Ziel', 'eifelhoster-buttons-pro' ); ?>
+					</button>
+					<button type="button" class="ebp-modal-tab" data-tab="docs">
+						<?php esc_html_e( 'Hilfe', 'eifelhoster-buttons-pro' ); ?>
 					</button>
 				</div>
 
@@ -327,6 +339,9 @@ class EBP_Editor {
 									<label><input type="radio" name="ebp-link-type" value="url" id="ebp-f-link-type-url" />
 										URL</label>
 									&nbsp;
+									<label><input type="radio" name="ebp-link-type" value="content" id="ebp-f-link-type-content" />
+										<?php esc_html_e( 'Seite / Beitrag', 'eifelhoster-buttons-pro' ); ?></label>
+									&nbsp;
 									<label><input type="radio" name="ebp-link-type" value="email" id="ebp-f-link-type-email" />
 										E-Mail</label>
 									&nbsp;
@@ -339,6 +354,18 @@ class EBP_Editor {
 								<th>URL</th>
 								<td><input type="url" id="ebp-f-url" class="ebp-full-width"
 									placeholder="https://…" /></td>
+							</tr>
+							<!-- Content / Post fields -->
+							<tr id="ebp-dlg-row-content">
+								<th><?php esc_html_e( 'Seite / Beitrag', 'eifelhoster-buttons-pro' ); ?></th>
+								<td>
+									<input type="text" id="ebp-f-content-search" class="ebp-full-width"
+										placeholder="<?php esc_attr_e( 'Mindestens 2 Zeichen eingeben…', 'eifelhoster-buttons-pro' ); ?>"
+										autocomplete="off" />
+									<ul id="ebp-content-results" class="ebp-content-results" style="display:none"></ul>
+									<input type="hidden" id="ebp-f-content-id" value="" />
+									<div id="ebp-content-selected" class="ebp-content-selected" style="display:none"></div>
+								</td>
 							</tr>
 							<!-- Email fields -->
 							<tr id="ebp-dlg-row-email">
@@ -377,6 +404,34 @@ class EBP_Editor {
 						</table>
 					</div>
 
+					<!-- ===== TAB: Hilfe / Dokumentation ===== -->
+					<div class="ebp-modal-panel" id="ebp-panel-docs">
+						<div class="ebp-docs-wrap">
+							<h3><?php esc_html_e( 'Button einfügen – Kurzanleitung', 'eifelhoster-buttons-pro' ); ?></h3>
+							<ol>
+								<li><?php esc_html_e( 'Klicken Sie auf die Schaltfläche „⬛ Button" in der Toolbar.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Geben Sie den Button-Text ein.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Wählen Sie im Tab „Link & Ziel" den Linktyp und das Ziel.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Passen Sie Farben, Schrift, Symbol und Rahmen nach Wunsch an.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><?php esc_html_e( 'Klicken Sie auf „Button einfügen".', 'eifelhoster-buttons-pro' ); ?></li>
+							</ol>
+
+							<h3><?php esc_html_e( 'Linktypen', 'eifelhoster-buttons-pro' ); ?></h3>
+							<ul>
+								<li><strong>URL</strong> – <?php esc_html_e( 'Beliebige Web-Adresse eingeben.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><strong><?php esc_html_e( 'Seite / Beitrag', 'eifelhoster-buttons-pro' ); ?></strong> – <?php esc_html_e( 'Mindestens 2 Zeichen eingeben; passende Seiten und Beiträge werden zur Auswahl angezeigt.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><strong>E-Mail</strong> – <?php esc_html_e( 'Erzeugt einen mailto:-Link mit optionalem Betreff und Text.', 'eifelhoster-buttons-pro' ); ?></li>
+								<li><strong><?php esc_html_e( 'Mediendatei', 'eifelhoster-buttons-pro' ); ?></strong> – <?php esc_html_e( 'Datei aus der WordPress-Medienbibliothek verlinken.', 'eifelhoster-buttons-pro' ); ?></li>
+							</ul>
+
+							<h3><?php esc_html_e( 'Shortcode', 'eifelhoster-buttons-pro' ); ?></h3>
+							<p><?php esc_html_e( 'Der Button kann auch direkt als Shortcode eingefügt werden:', 'eifelhoster-buttons-pro' ); ?></p>
+							<pre class="ebp-docs-code">[eifelhoster_button text="Mehr erfahren" url="https://beispiel.de" target="_blank"]</pre>
+							<p><?php esc_html_e( 'Für Seiten/Beiträge:', 'eifelhoster-buttons-pro' ); ?></p>
+							<pre class="ebp-docs-code">[eifelhoster_button text="Kontakt" link_type="content" content_id="42"]</pre>
+						</div>
+					</div>
+
 					<!-- Preview -->
 					<div id="ebp-dialog-preview-wrap">
 						<span class="ebp-preview-label">
@@ -409,5 +464,44 @@ class EBP_Editor {
 			</div><!-- #ebp-modal -->
 		</div><!-- #ebp-modal-overlay -->
 		<?php
+	}
+	/**
+	 * AJAX handler: search posts/pages/CPTs by title.
+	 * Requires at least 2 characters. Returns JSON array of matches.
+	 */
+	public function ajax_search_content() {
+		check_ajax_referer( 'ebp_search_content', 'nonce' );
+
+		if ( ! current_user_can( 'edit_posts' ) ) {
+			wp_send_json_error( 'Insufficient permissions', 403 );
+			return;
+		}
+
+		$term = isset( $_GET['term'] ) ? sanitize_text_field( wp_unslash( $_GET['term'] ) ) : '';
+		if ( mb_strlen( $term ) < 2 ) {
+			wp_send_json_success( array() );
+			return;
+		}
+
+		$post_types = get_post_types( array( 'public' => true ), 'names' );
+		$posts      = get_posts( array(
+			's'              => $term,
+			'post_type'      => array_values( $post_types ),
+			'post_status'    => 'publish',
+			'posts_per_page' => 20,
+			'no_found_rows'  => true,
+		) );
+
+		$data = array();
+		foreach ( $posts as $post ) {
+			$data[] = array(
+				'id'        => $post->ID,
+				'title'     => $post->post_title,
+				'permalink' => get_permalink( $post->ID ),
+				'type'      => $post->post_type,
+			);
+		}
+
+		wp_send_json_success( $data );
 	}
 }
