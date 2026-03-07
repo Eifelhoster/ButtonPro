@@ -529,41 +529,6 @@ class EBP_Admin {
 					</table>
 				</div>
 
-				<!-- Logo Upload (always visible, below all tabs) -->
-				<div class="ebp-logo-upload-section">
-					<h2><?php esc_html_e( 'Logo / Plugin-Bild', 'eifelhoster-buttons-pro' ); ?></h2>
-					<p class="description">
-						<?php esc_html_e( 'Laden Sie hier Ihr Logo hoch. Es wird in der Dokumentationsseite angezeigt.', 'eifelhoster-buttons-pro' ); ?>
-					</p>
-					<table class="form-table ebp-form-table">
-						<tr>
-							<th><?php esc_html_e( 'Logo', 'eifelhoster-buttons-pro' ); ?></th>
-							<td>
-								<input type="hidden" name="<?php echo esc_attr( EBP_OPTION_KEY ); ?>[logo_url]"
-									id="ebp-logo-url" value="<?php echo esc_url( $d['logo_url'] ); ?>" />
-								<button type="button" class="button" id="ebp-select-logo">
-									<?php esc_html_e( 'Logo auswählen', 'eifelhoster-buttons-pro' ); ?>
-								</button>
-								<?php
-								$remove_style = empty( $d['logo_url'] )
-									? 'margin-left:8px;display:none'
-									: 'margin-left:8px';
-								?>
-								<button type="button" class="button" id="ebp-remove-logo"
-									style="<?php echo esc_attr( $remove_style ); ?>">
-									<?php esc_html_e( 'Entfernen', 'eifelhoster-buttons-pro' ); ?>
-								</button>
-								<div id="ebp-logo-preview" style="margin-top:10px">
-									<?php if ( ! empty( $d['logo_url'] ) ) : ?>
-										<img src="<?php echo esc_url( $d['logo_url'] ); ?>"
-											style="max-height:80px;max-width:300px;display:block" />
-									<?php endif; ?>
-								</div>
-							</td>
-						</tr>
-					</table>
-				</div>
-
 				<?php submit_button( __( 'Einstellungen speichern', 'eifelhoster-buttons-pro' ) ); ?>
 			</form>
 
@@ -608,22 +573,16 @@ class EBP_Admin {
 		}
 
 		$d        = ebp_get_defaults();
-		$logo_url = ! empty( $d['logo_url'] ) ? $d['logo_url'] : '';
+		$logo_url = EBP_PLUGIN_URL . 'assets/images/eifelhoster-logo.svg';
 		$back_url = admin_url( 'options-general.php?page=buttonpro' );
 		?>
 		<div class="wrap ebp-admin-wrap ebp-docs-wrap">
 
 			<!-- Header with logo -->
 			<div class="ebp-docs-header">
-				<?php if ( $logo_url ) : ?>
-					<img src="<?php echo esc_url( $logo_url ); ?>"
-						alt="<?php esc_attr_e( 'Logo', 'eifelhoster-buttons-pro' ); ?>"
-						class="ebp-docs-logo" />
-				<?php else : ?>
-					<p class="ebp-docs-no-logo">
-						<?php esc_html_e( 'Noch kein Logo hochgeladen. Laden Sie auf der Einstellungsseite ein Logo hoch.', 'eifelhoster-buttons-pro' ); ?>
-					</p>
-				<?php endif; ?>
+				<img src="<?php echo esc_url( $logo_url ); ?>"
+					alt="<?php esc_attr_e( 'Eifelhoster Logo', 'eifelhoster-buttons-pro' ); ?>"
+					class="ebp-docs-logo" />
 
 				<h1>
 					<span class="dashicons dashicons-book-alt ebp-title-icon"></span>

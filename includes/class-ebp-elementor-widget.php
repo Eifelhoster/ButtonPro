@@ -220,18 +220,21 @@ class EBP_Elementor_Widget extends Widget_Base {
 				'default' => $d['icon_type'],
 				'options' => array(
 					'none'     => __( 'Kein Symbol', 'eifelhoster-buttons-pro' ),
-					'dashicon' => 'Dashicon',
+					'dashicon' => __( 'Symbol (Icon Picker)', 'eifelhoster-buttons-pro' ),
 					'media'    => __( 'Mediendatei', 'eifelhoster-buttons-pro' ),
 				),
 			)
 		);
 
 		$this->add_control(
-			'icon',
+			'icon_picker',
 			array(
-				'label'     => __( 'Dashicon (Slug)', 'eifelhoster-buttons-pro' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => $d['icon'],
+				'label'     => __( 'Symbol auswählen', 'eifelhoster-buttons-pro' ),
+				'type'      => Controls_Manager::ICONS,
+				'default'   => array(
+					'value'   => '',
+					'library' => '',
+				),
 				'condition' => array( 'icon_type' => 'dashicon' ),
 			)
 		);
@@ -514,6 +517,12 @@ class EBP_Elementor_Widget extends Widget_Base {
 		$settings = $this->get_settings_for_display();
 
 		// Map Elementor settings to shortcode attribute array.
+		// Extract the icon CSS class from the Elementor ICONS control value.
+		$icon_class = '';
+		if ( isset( $settings['icon_picker']['value'] ) && '' !== $settings['icon_picker']['value'] ) {
+			$icon_class = $settings['icon_picker']['value'];
+		}
+
 		$attrs = array(
 			'text'             => isset( $settings['text'] ) ? $settings['text'] : 'Button',
 			'font_family'      => isset( $settings['font_family'] ) ? $settings['font_family'] : 'inherit',
@@ -529,7 +538,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			'padding_v'        => isset( $settings['padding_v'] ) ? (string) $settings['padding_v'] : '10',
 			'padding_h'        => isset( $settings['padding_h'] ) ? (string) $settings['padding_h'] : '20',
 			'icon_type'        => isset( $settings['icon_type'] ) ? $settings['icon_type'] : 'none',
-			'icon'             => isset( $settings['icon'] ) ? $settings['icon'] : '',
+			'icon'             => $icon_class,
 			'icon_media_url'   => isset( $settings['icon_media_url'] ) ? $settings['icon_media_url'] : '',
 			'icon_size'        => isset( $settings['icon_size'] ) ? (string) $settings['icon_size'] : '32',
 			'icon_spacing'     => isset( $settings['icon_spacing'] ) ? (string) $settings['icon_spacing'] : '24',

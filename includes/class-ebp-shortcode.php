@@ -179,8 +179,18 @@ class EBP_Shortcode {
 		// ---- Build icon HTML ----
 		$icon_html = '';
 		if ( 'dashicon' === $a['icon_type'] && ! empty( $a['icon'] ) ) {
-			$sz        = absint( $a['icon_size'] );
-			$icon_html = '<span class="dashicons dashicons-' . esc_attr( $a['icon'] ) . '" '
+			$sz  = absint( $a['icon_size'] );
+			// Support both a plain dashicon slug (e.g. "star-filled") and a full CSS
+			// class string returned by the Elementor ICONS picker (e.g.
+			// "dashicons dashicons-star-filled" or "fas fa-star").
+			// The value is placed inside an HTML attribute and escaped with esc_attr(),
+			// which neutralises any characters that could break out of the attribute
+			// context, preventing CSS or HTML injection.
+			$icon_val = sanitize_text_field( $a['icon'] );
+			$class    = ( false !== strpos( $icon_val, ' ' ) )
+				? $icon_val
+				: 'dashicons dashicons-' . $icon_val;
+			$icon_html = '<span class="' . esc_attr( $class ) . '" '
 				. 'style="font-size:' . $sz . 'px;width:' . $sz . 'px;height:' . $sz . 'px;" aria-hidden="true"></span>';
 		} elseif ( 'media' === $a['icon_type'] && ! empty( $a['icon_media_url'] ) ) {
 			$sz        = absint( $a['icon_size'] );
