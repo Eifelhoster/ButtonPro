@@ -239,9 +239,11 @@ class EBP_Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'icon_media_url',
 			array(
-				'label'     => __( 'Symbol-Bild URL', 'eifelhoster-buttons-pro' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => $d['icon_media_url'],
+				'label'     => __( 'Symbol-Bild', 'eifelhoster-buttons-pro' ),
+				'type'      => Controls_Manager::MEDIA,
+				'default'   => array(
+					'url' => $d['icon_media_url'],
+				),
 				'condition' => array( 'icon_type' => 'media' ),
 			)
 		);
@@ -484,12 +486,27 @@ class EBP_Elementor_Widget extends Widget_Base {
 		);
 
 		$this->add_control(
+			'content_search_ui',
+			array(
+				'type'      => Controls_Manager::RAW_HTML,
+				'raw'       => '<div class="ebp-el-content-search-wrap">'
+					. '<input type="text" class="ebp-el-content-search" placeholder="'
+					. esc_attr__( 'Suche (min. 2 Zeichen)…', 'eifelhoster-buttons-pro' )
+					. '" style="width:100%;margin-bottom:4px;padding:4px 6px;box-sizing:border-box" />'
+					. '<div class="ebp-el-content-results" style="max-height:160px;overflow-y:auto;border:1px solid #ddd;display:none;background:#fff;position:relative;z-index:9999"></div>'
+					. '<div class="ebp-el-content-selected" style="margin-top:4px;font-size:11px;color:#555"></div>'
+					. '</div>',
+				'condition' => array( 'link_type' => 'content' ),
+			)
+		);
+
+		$this->add_control(
 			'content_id',
 			array(
 				'label'       => __( 'Inhalt (Post/Seite ID)', 'eifelhoster-buttons-pro' ),
-				'type'        => Controls_Manager::NUMBER,
+				'type'        => Controls_Manager::TEXT,
 				'default'     => '',
-				'description' => __( 'ID einer Seite, eines Beitrags oder eines Custom Post Types', 'eifelhoster-buttons-pro' ),
+				'description' => __( 'Wird automatisch durch die Suche ausgefüllt', 'eifelhoster-buttons-pro' ),
 				'condition'   => array( 'link_type' => 'content' ),
 			)
 		);
@@ -530,7 +547,13 @@ class EBP_Elementor_Widget extends Widget_Base {
 			'padding_h'        => isset( $settings['padding_h'] ) ? (string) $settings['padding_h'] : '20',
 			'icon_type'        => isset( $settings['icon_type'] ) ? $settings['icon_type'] : 'none',
 			'icon'             => isset( $settings['icon'] ) ? $settings['icon'] : '',
-			'icon_media_url'   => isset( $settings['icon_media_url'] ) ? $settings['icon_media_url'] : '',
+			'icon_media_url'   => ( function () use ( $settings ) {
+				$v = isset( $settings['icon_media_url'] ) ? $settings['icon_media_url'] : '';
+				if ( is_array( $v ) ) {
+					return ! empty( $v['url'] ) ? $v['url'] : '';
+				}
+				return (string) $v; // backward-compat: old plain-URL string value.
+			} )(),
 			'icon_size'        => isset( $settings['icon_size'] ) ? (string) $settings['icon_size'] : '32',
 			'icon_spacing'     => isset( $settings['icon_spacing'] ) ? (string) $settings['icon_spacing'] : '24',
 			'icon_position'    => isset( $settings['icon_position'] ) ? $settings['icon_position'] : 'before',
