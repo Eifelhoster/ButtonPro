@@ -341,3 +341,115 @@
 .ebp-dialog-color + .wp-color-result {
 	margin: 0;
 }
+
+/* ============================================================
+   Logo Upload Section (Settings Page)
+   ============================================================ */
+
+.ebp-logo-upload-section {
+	margin-top: 24px;
+	padding: 20px;
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+}
+.ebp-logo-upload-section h2 {
+	margin-top: 0;
+}
+
+/* Documentation button in footer */
+.ebp-docs-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+/* ============================================================
+   Documentation Page
+   ============================================================ */
+
+.ebp-docs-wrap {
+	max-width: 900px;
+}
+
+.ebp-docs-header {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	margin-bottom: 24px;
+	padding-bottom: 16px;
+	border-bottom: 2px solid #2271b1;
+}
+.ebp-docs-header h1 {
+	margin: 0;
+}
+.ebp-docs-logo {
+	max-height: 100px;
+	max-width: 300px;
+	display: block;
+}
+.ebp-docs-no-logo {
+	background: #f0f0f1;
+	border-left: 4px solid #a7aaad;
+	padding: 10px 14px;
+	margin: 0;
+	color: #646970;
+	font-style: italic;
+}
+
+.ebp-docs-content {
+	background: #fff;
+	border: 1px solid #c3c4c7;
+	border-radius: 4px;
+	padding: 0;
+}
+.ebp-docs-section {
+	padding: 24px 28px;
+	border-bottom: 1px solid #ececec;
+}
+.ebp-docs-section:last-child {
+	border-bottom: none;
+}
+.ebp-docs-section h2 {
+	margin-top: 0;
+	color: #2271b1;
+	font-size: 16px;
+	border-left: 4px solid #2271b1;
+	padding-left: 10px;
+}
+.ebp-docs-section ol,
+.ebp-docs-section ul {
+	margin-left: 20px;
+}
+.ebp-docs-section li {
+	margin-bottom: 6px;
+	line-height: 1.6;
+}
+.ebp-docs-section p {
+	line-height: 1.6;
+}
+
+/* Contact / Developer section */
+.ebp-docs-contact {
+	background: #f6f7f7;
+}
+.ebp-docs-contact h2 {
+	color: #1d2327;
+	border-left-color: #1d2327;
+}
+.ebp-docs-address {
+	font-style: normal;
+	background: #fff;
+	border: 1px solid #dcdcde;
+	border-radius: 4px;
+	padding: 16px 20px;
+	display: inline-block;
+	line-height: 1.8;
+}
+.ebp-docs-address a {
+	color: #2271b1;
+	text-decoration: none;
+}
+.ebp-docs-address a:hover {
+	text-decoration: underline;
+}

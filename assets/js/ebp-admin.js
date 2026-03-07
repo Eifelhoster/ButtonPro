@@ -61,6 +61,38 @@
 			$( '#ebp-admin-row-content' ).toggle( val === 'content' );
 		} );
 
+		// ---- Media picker for logo ----
+		var mediaFrameLogo = null;
+		$( '#ebp-select-logo' ).on( 'click', function () {
+			if ( mediaFrameLogo ) {
+				mediaFrameLogo.open();
+				return;
+			}
+			mediaFrameLogo = wp.media( {
+				title   : 'Logo auswählen',
+				button  : { text: 'Logo verwenden' },
+				multiple: false,
+				library : { type: 'image' },
+			} );
+			mediaFrameLogo.on( 'select', function () {
+				var a = mediaFrameLogo.state().get( 'selection' ).first().toJSON();
+				$( '#ebp-logo-url' ).val( a.url );
+				var $img = $( '<img>' ).attr( {
+					src  : a.url,
+					style: 'max-height:80px;max-width:300px;display:block',
+				} );
+				$( '#ebp-logo-preview' ).empty().append( $img );
+				$( '#ebp-remove-logo' ).show();
+			} );
+			mediaFrameLogo.open();
+		} );
+
+		$( '#ebp-remove-logo' ).on( 'click', function () {
+			$( '#ebp-logo-url' ).val( '' );
+			$( '#ebp-logo-preview' ).empty();
+			$( this ).hide();
+		} );
+
 		// ---- Media picker for icon ----
 		var mediaFrameIcon = null;
 		$( '#ebp-select-icon-media' ).on( 'click', function () {
