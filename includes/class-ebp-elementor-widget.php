@@ -485,7 +485,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			array(
 				'label'       => __( 'Inhalt (Post/Seite ID)', 'eifelhoster-buttons-pro' ),
 				'type'        => Controls_Manager::NUMBER,
-				'default'     => 0,
+				'default'     => '',
 				'description' => __( 'ID einer Seite, eines Beitrags oder eines Custom Post Types', 'eifelhoster-buttons-pro' ),
 				'condition'   => array( 'link_type' => 'content' ),
 			)
@@ -558,7 +558,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 		}
 		$sc .= ']';
 
-		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- do_shortcode output is safe: all shortcode attributes are passed through esc_attr() above and class-ebp-shortcode.php escapes all HTML output.
 		echo do_shortcode( $sc );
 	}
 
