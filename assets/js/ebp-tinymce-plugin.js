@@ -15,11 +15,49 @@
 			text  : '⬛ Button',
 			tooltip: 'Eifelhoster Buttons Pro – Button einfügen',
 			onclick: function () {
-				// Store current editor reference so the dialog can insert content.
-				if ( typeof window.ebpOpenDialog === 'function' ) {
-					window.ebpOpenDialog( editor );
+				if ( typeof window.ebpOpenDialog !== 'function' ) {
+					return;
 				}
+				// Pass edit-data when the cursor sits inside an existing shortcode.
+				var editData = ebpGetShortcodeAtCursor( editor );
+				window.ebpOpenDialog( editor, editData );
 			}
 		} );
 	} );
+
+	/**
+	 * Inspect the text node at the cursor position.
+	 * Returns { shortcode, node, start, end } when the cursor is inside an
+	 * [eifelhoster_button …] shortcode, or null otherwise.
+	 *
+	 * @param  {Object} editor  TinyMCE editor instance.
+	 * @return {Object|null}
+	 */
+	function ebpGetShortcodeAtCursor( editor ) {
+		var rng       = editor.selection.getRng();
+		var container = rng.startContainer;
+
+		// Only works within a text node.
+		if ( ! container || container.nodeType !== 3 ) {
+			return null;
+		}
+
+		var text   = container.nodeValue || '';
+		var offset = rng.startOffset;
+		var re     = /\[eifelhoster_button\b[^\]]*\]/g;
+		var match;
+		re.lastIndex = 0;
+
+		while ( ( match = re.exec( text ) ) !== null ) {
+			if ( match.index <= offset && offset <= match.index + match[0].length ) {
+				return {
+					shortcode : match[0],
+					node      : container,
+					start     : match.index,
+					end       : match.index + match[0].length,
+				};
+			}
+		}
+		return null;
+	}
 }());
