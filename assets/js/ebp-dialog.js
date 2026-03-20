@@ -1,8 +1,12 @@
 /**
  * Dialog UI for Eifelhoster Buttons Pro.
  *
- * Provides  window.ebpOpenDialog( editor [, editData] )  which is called by the TinyMCE plugin.
- * editData: { shortcode, node, start, end } – present when editing an existing shortcode.
+ * Provides  window.ebpOpenDialog( editor [, editTarget] )  called by the TinyMCE plugin.
+ *
+ * editTarget can be:
+ *   - An <a class="ebp-button"> DOM element  → edit an HTML button (new style)
+ *   - { shortcode, node, start, end }         → edit a legacy shortcode (backward compat)
+ *   - null / undefined                         → insert a new button
  */
 /* global jQuery, ebpData, wp */
 (function ( $ ) {
@@ -13,31 +17,35 @@
 	var mediaFrameLink  = null;
 
 	// Edit-mode state.
-	var isEditing = false;
-	var editNode  = null;
-	var editStart = 0;
-	var editEnd   = 0;
+	var isEditing         = false;
+	var editNodeRef       = null; // <a.ebp-button> DOM element (HTML-button editing mode)
+	var editShortcodeData = null; // {shortcode, node, start, end} (legacy shortcode mode)
 
 	// -------------------------------------------------------------------------
 	// Public API
 	// -------------------------------------------------------------------------
-	window.ebpOpenDialog = function ( editor, editData ) {
-		currentEditor = editor;
-		isEditing     = false;
-		editNode      = null;
-		editStart     = 0;
-		editEnd       = 0;
+	window.ebpOpenDialog = function ( editor, editTarget ) {
+		currentEditor     = editor;
+		isEditing         = false;
+		editNodeRef       = null;
+		editShortcodeData = null;
 
 		ebpResetForm();
 
-		if ( editData ) {
-			isEditing = true;
-			editNode  = editData.node;
-			editStart = editData.start;
-			editEnd   = editData.end;
+		if ( editTarget && editTarget.nodeName ) {
+			// ── HTML button editing mode ────────────────────────────────────
+			isEditing   = true;
+			editNodeRef = editTarget;
 
-			var attrs = ebpParseShortcodeAttrs( editData.shortcode );
-			ebpPopulateForm( attrs );
+			var dataAttr = editTarget.getAttribute( 'data-ebp' );
+			if ( dataAttr ) {
+				try {
+					var attrs = JSON.parse( decodeURIComponent( dataAttr ) );
+					ebpPopulateForm( attrs );
+				} catch ( e ) {
+					// Ignore parse errors; form keeps defaults.
+				}
+			}
 
 			$( '#ebp-modal-title' ).html(
 				'<span class="dashicons dashicons-edit" style="margin-right:6px"></span>' +
@@ -47,7 +55,26 @@
 				'<span class="dashicons dashicons-yes" style="vertical-align:middle;margin-right:4px"></span>' +
 				ebpData.i18n.update
 			);
+
+		} else if ( editTarget ) {
+			// ── Legacy shortcode editing mode ──────────────────────────────
+			isEditing         = true;
+			editShortcodeData = editTarget;
+
+			var scAttrs = ebpParseShortcodeAttrs( editTarget.shortcode );
+			ebpPopulateForm( scAttrs );
+
+			$( '#ebp-modal-title' ).html(
+				'<span class="dashicons dashicons-edit" style="margin-right:6px"></span>' +
+				ebpData.i18n.editTitle
+			);
+			$( '#ebp-btn-insert' ).html(
+				'<span class="dashicons dashicons-yes" style="vertical-align:middle;margin-right:4px"></span>' +
+				ebpData.i18n.update
+			);
+
 		} else {
+			// ── Insert new button ───────────────────────────────────────────
 			$( '#ebp-modal-title' ).html(
 				'<span class="dashicons dashicons-button" style="margin-right:6px"></span>' +
 				ebpData.i18n.title
@@ -73,6 +100,9 @@
 			.replace( /"/g,  '&quot;' )
 			.replace( /'/g,  '&#039;' );
 	}
+
+	// Allowed CSS border-style values (constant, defined once).
+	var EBP_BORDER_STYLES = [ 'solid', 'dashed', 'dotted', 'double', 'none' ];
 
 	// -------------------------------------------------------------------------
 	// Init
@@ -220,6 +250,7 @@
 							.on( 'mouseleave', function () { $( this ).css( 'background', '' ); } )
 							.on( 'click', function () {
 								$( '#ebp-f-content-id' ).val( $( this ).data( 'id' ) );
+								$( '#ebp-f-content-permalink' ).val( $( this ).data( 'permalink' ) );
 								$( '#ebp-f-content-search' ).val( $( this ).data( 'title' ) );
 								$( '#ebp-dlg-content-selected' ).html(
 									'<span class="dashicons dashicons-yes" style="color:green;vertical-align:middle"></span> ' +
@@ -332,6 +363,7 @@
 		$( '#ebp-f-media-url' ).val( d.media_url );
 		$( '#ebp-dlg-media-preview' ).html( '' );
 		$( '#ebp-f-content-id' ).val( d.content_id || '' );
+		$( '#ebp-f-content-permalink' ).val( '' );
 		$( '#ebp-f-content-search' ).val( '' );
 		$( '#ebp-dlg-content-results' ).hide().empty();
 		$( '#ebp-dlg-content-selected' ).html( '' );
@@ -372,38 +404,160 @@
 	// -------------------------------------------------------------------------
 	function ebpCloseDialog() {
 		$( '#ebp-modal-overlay' ).fadeOut( 150 );
-		currentEditor = null;
-		isEditing     = false;
-		editNode      = null;
-		editStart     = 0;
-		editEnd       = 0;
+		currentEditor     = null;
+		isEditing         = false;
+		editNodeRef       = null;
+		editShortcodeData = null;
 	}
 
 	// -------------------------------------------------------------------------
-	// Build shortcode and insert (or replace) in editor
+	// Build rendered button HTML and insert (or replace) in editor
 	// -------------------------------------------------------------------------
 	function ebpInsertShortcode() {
 		if ( ! currentEditor ) {
 			return;
 		}
 		var attrs = ebpCollectAttrs();
-		var sc    = '[eifelhoster_button';
-		$.each( attrs, function ( k, v ) {
-			sc += ' ' + k + '="' + v.replace( /"/g, '&quot;' ) + '"';
-		} );
-		sc += ']';
+		var html  = ebpBuildButtonHtml( attrs );
 
-		if ( isEditing && editNode ) {
-			// Select the existing shortcode text and replace it.
+		if ( isEditing && editNodeRef ) {
+			// Replace HTML button element in-place.
 			var rng = currentEditor.dom.createRng();
-			rng.setStart( editNode, editStart );
-			rng.setEnd(   editNode, editEnd   );
+			rng.setStartBefore( editNodeRef );
+			rng.setEndAfter( editNodeRef );
 			currentEditor.selection.setRng( rng );
-			currentEditor.selection.setContent( sc );
+			currentEditor.selection.setContent( html );
+		} else if ( isEditing && editShortcodeData ) {
+			// Replace legacy shortcode text with HTML button (upgrade path).
+			var srng = currentEditor.dom.createRng();
+			srng.setStart( editShortcodeData.node, editShortcodeData.start );
+			srng.setEnd(   editShortcodeData.node, editShortcodeData.end   );
+			currentEditor.selection.setRng( srng );
+			currentEditor.selection.setContent( html );
 		} else {
-			currentEditor.insertContent( sc );
+			currentEditor.insertContent( html );
 		}
 		ebpCloseDialog();
+	}
+
+	// -------------------------------------------------------------------------
+	// Build the rendered HTML for an ebp-button from an attributes object.
+	// This mirrors the logic in EBP_Shortcode::render() (PHP).
+	// -------------------------------------------------------------------------
+	function ebpBuildButtonHtml( attrs ) {
+
+		// Build href.
+		var href     = '#';
+		var linkType = attrs.link_type || 'url';
+		if ( linkType === 'url' && attrs.url ) {
+			href = attrs.url;
+		} else if ( linkType === 'email' && attrs.email ) {
+			var mailto = 'mailto:' + attrs.email;
+			var params = [];
+			if ( attrs.email_subject ) {
+				params.push( 'subject=' + encodeURIComponent( attrs.email_subject ) );
+			}
+			if ( attrs.email_body ) {
+				params.push( 'body=' + encodeURIComponent( attrs.email_body ) );
+			}
+			if ( params.length ) {
+				mailto += '?' + params.join( '&' );
+			}
+			href = mailto;
+		} else if ( linkType === 'media' && attrs.media_url ) {
+			href = attrs.media_url;
+		} else if ( linkType === 'content' && attrs.content_permalink ) {
+			href = attrs.content_permalink;
+		}
+
+		// Build inline style.
+		var style = [
+			'display:inline-flex',
+			'align-items:center',
+			'justify-content:center',
+			'text-decoration:none',
+			'cursor:pointer',
+			'transition:background-color .3s,color .3s,transform .3s',
+		];
+
+		if ( attrs.font_family && attrs.font_family !== 'inherit' ) {
+			style.push( 'font-family:' + attrs.font_family );
+		}
+		style.push( 'font-size:'    + ( parseInt( attrs.font_size,   10 ) || 16 ) + 'px' );
+		style.push( 'font-weight:'  + ( attrs.font_bold   === '1' ? 'bold'   : 'normal' ) );
+		style.push( 'font-style:'   + ( attrs.font_italic === '1' ? 'italic' : 'normal' ) );
+		style.push( 'background-color:' + ( attrs.bg_color    || '#007bff' ) );
+		style.push( 'color:'             + ( attrs.text_color  || '#ffffff' ) );
+		style.push( 'padding:'
+			+ ( parseInt( attrs.padding_v, 10 ) || 10 ) + 'px '
+			+ ( parseInt( attrs.padding_h, 10 ) || 20 ) + 'px' );
+		style.push( 'border-width:' + ( parseInt( attrs.border_width,  10 ) || 0 ) + 'px' );
+		var safeStyles = EBP_BORDER_STYLES;
+		style.push( 'border-style:' +
+			( safeStyles.indexOf( attrs.border_style ) !== -1 ? attrs.border_style : 'solid' ) );
+		style.push( 'border-color:'  + ( attrs.border_color  || '#000000' ) );
+		style.push( 'border-radius:' + ( parseInt( attrs.border_radius, 10 ) || 0 ) + 'px' );
+
+		if ( parseInt( attrs.button_width, 10 ) > 0 ) {
+			style.push( 'width:' + parseInt( attrs.button_width, 10 ) + 'px' );
+		}
+
+		if ( attrs.shadow_enabled === '1' ) {
+			style.push( 'box-shadow:'
+				+ parseInt( attrs.shadow_x,      10 ) + 'px '
+				+ parseInt( attrs.shadow_y,      10 ) + 'px '
+				+ Math.abs( parseInt( attrs.shadow_blur,   10 ) ) + 'px '
+				+ parseInt( attrs.shadow_spread, 10 ) + 'px '
+				+ ( attrs.shadow_color || '#777777' ) );
+		}
+
+		if ( attrs.icon_type && attrs.icon_type !== 'none' ) {
+			style.push( 'gap:' + ( parseInt( attrs.icon_spacing, 10 ) || 8 ) + 'px' );
+		}
+
+		// CSS custom properties for hover effects (used by ebp-frontend.css).
+		style.push( '--ebp-hover-bg:'    + ( attrs.bg_hover_color   || '#0056b3' ) );
+		style.push( '--ebp-hover-color:' + ( attrs.text_hover_color || '#ffffff' ) );
+		var grow = parseFloat( attrs.hover_grow ) || 1.0;
+		grow = Math.max( 1.0, Math.min( 2.0, grow ) );
+		style.push( '--ebp-hover-grow:'  + grow.toFixed( 2 ) );
+
+		var styleStr = style.join( ';' );
+
+		// Encode all attrs for the data-ebp attribute (enables editing in TinyMCE).
+		var dataEbp = encodeURIComponent( JSON.stringify( attrs ) );
+
+		var target = attrs.target === '_blank' ? '_blank' : '_self';
+		var rel    = target === '_blank' ? ' rel="noopener noreferrer"' : '';
+
+		// Icon HTML.  Icon slug is sanitized to alphanumeric + hyphens only.
+		var iconHtml = '';
+		if ( attrs.icon_type === 'dashicon' && attrs.icon ) {
+			var safeIcon = String( attrs.icon ).replace( /[^a-z0-9\-]/g, '' );
+			var sz = parseInt( attrs.icon_size, 10 ) || 20;
+			iconHtml = '<span class="dashicons dashicons-' + safeIcon + '"'
+				+ ' style="font-size:' + sz + 'px;width:' + sz + 'px;height:' + sz + 'px;"'
+				+ ' aria-hidden="true"></span>';
+		} else if ( attrs.icon_type === 'media' && attrs.icon_media_url ) {
+			var sz2 = parseInt( attrs.icon_size, 10 ) || 20;
+			iconHtml = '<img src="' + ebpEscHtml( attrs.icon_media_url ) + '"'
+				+ ' style="width:' + sz2 + 'px;height:' + sz2 + 'px;"'
+				+ ' alt="" aria-hidden="true" />';
+		}
+
+		var textSpan = '<span class="ebp-btn-text">' + ebpEscHtml( attrs.text || 'Button' ) + '</span>';
+		var innerHtml = ( attrs.icon_position === 'after' )
+			? textSpan + iconHtml
+			: iconHtml + textSpan;
+
+		return '<a class="ebp-button"'
+			+ ' href="'    + ebpEscHtml( href )     + '"'
+			+ ' target="'  + ebpEscHtml( target )   + '"'
+			+ rel
+			+ ' style="'   + ebpEscHtml( styleStr ) + '"'
+			+ ' data-ebp="' + dataEbp               + '">'
+			+ innerHtml
+			+ '</a>';
 	}
 
 	// -------------------------------------------------------------------------
@@ -452,6 +606,8 @@
 			email_body       : $( '#ebp-f-email-body' ).val(),
 			media_url        : $( '#ebp-f-media-url' ).val(),
 			content_id       : $( '#ebp-f-content-id' ).val(),
+			content_permalink: $( '#ebp-f-content-permalink' ).val(),
+			content_title    : $( '#ebp-f-content-search' ).val(),
 			target           : target,
 		};
 	}
@@ -673,6 +829,14 @@
 		$( '#ebp-f-email-body' ).val( v( 'email_body', '' ) );
 		$( '#ebp-f-media-url' ).val( v( 'media_url', '' ) );
 		$( '#ebp-f-content-id' ).val( v( 'content_id', '' ) );
+		$( '#ebp-f-content-permalink' ).val( v( 'content_permalink', '' ) );
+		$( '#ebp-f-content-search' ).val( v( 'content_title', '' ) );
+		if ( v( 'content_title', '' ) ) {
+			$( '#ebp-dlg-content-selected' ).html(
+				'<span class="dashicons dashicons-yes" style="color:green;vertical-align:middle"></span> ' +
+				ebpEscHtml( v( 'content_title', '' ) )
+			);
+		}
 		$( 'input[name="ebp-target"][value="' + v( 'target', '_self' ) + '"]' ).prop( 'checked', true );
 
 		ebpUpdatePreview();
