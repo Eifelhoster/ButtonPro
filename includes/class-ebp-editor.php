@@ -139,7 +139,7 @@ class EBP_Editor {
 		}
 
 		$search = isset( $_POST['search'] ) ? sanitize_text_field( wp_unslash( $_POST['search'] ) ) : '';
-		if ( strlen( $search ) < 2 ) {
+		if ( strlen( $search ) < 1 ) {
 			wp_send_json_success( array() );
 		}
 
@@ -465,7 +465,7 @@ class EBP_Editor {
 								<th><?php esc_html_e( 'Inhalt suchen', 'eifelhoster-buttons-pro' ); ?></th>
 								<td>
 									<input type="text" id="ebp-f-content-search" class="ebp-full-width"
-										placeholder="<?php esc_attr_e( 'Suche (min. 2 Zeichen)…', 'eifelhoster-buttons-pro' ); ?>" />
+										placeholder="<?php esc_attr_e( 'Suche (min. 1 Zeichen)…', 'eifelhoster-buttons-pro' ); ?>" />
 									<div id="ebp-dlg-content-results" style="margin-top:6px;max-height:160px;overflow-y:auto;border:1px solid #ddd;display:none"></div>
 									<input type="hidden" id="ebp-f-content-id" value="" />
 									<input type="hidden" id="ebp-f-content-permalink" value="" />

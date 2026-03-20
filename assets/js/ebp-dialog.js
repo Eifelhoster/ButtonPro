@@ -220,7 +220,7 @@
 		$( '#ebp-f-content-search' ).on( 'input', function () {
 			var val = $( this ).val();
 			clearTimeout( contentSearchTimer );
-			if ( val.length < 2 ) {
+			if ( val.length < 1 ) {
 				$( '#ebp-dlg-content-results' ).hide().empty();
 				return;
 			}
