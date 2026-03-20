@@ -17,6 +17,14 @@ class EBP_Editor {
 		add_action( 'admin_footer',           array( $this, 'render_dialog' ) );
 		// AJAX content search.
 		add_action( 'wp_ajax_ebp_search_content', array( $this, 'ajax_search_content' ) );
+
+		// Load frontend CSS (+ dashicons) inside TinyMCE so HTML buttons render
+		// correctly in the Classic Editor visual view.
+		add_filter( 'mce_css',             array( $this, 'add_mce_css' ) );
+		// Allow data-ebp attribute and CSS custom properties to survive save.
+		add_filter( 'tiny_mce_before_init', array( $this, 'mce_allow_data_ebp' ) );
+		add_filter( 'wp_kses_allowed_html', array( $this, 'kses_allow_data_ebp' ), 10, 2 );
+		add_filter( 'safe_style_css',       array( $this, 'safe_style_allow_ebp_vars' ) );
 	}
 
 	/** Only enqueue on post / page editing screens. */
@@ -87,6 +95,39 @@ class EBP_Editor {
 	public function mce_button( $buttons ) {
 		array_push( $buttons, 'ebp_button' );
 		return $buttons;
+	}
+
+	/** Inject frontend CSS and dashicons into TinyMCE so HTML buttons look correct. */
+	public function add_mce_css( $mce_css ) {
+		$mce_css .= ( '' !== $mce_css ? ',' : '' )
+			. includes_url( 'css/dashicons.min.css' )
+			. ',' . EBP_PLUGIN_URL . 'assets/css/ebp-frontend.css';
+		return $mce_css;
+	}
+
+	/** Allow all attributes on <a> in TinyMCE so data-ebp is not stripped. */
+	public function mce_allow_data_ebp( $init ) {
+		$extra = 'a[*]';
+		$init['extended_valid_elements'] = isset( $init['extended_valid_elements'] )
+			? $init['extended_valid_elements'] . ',' . $extra
+			: $extra;
+		return $init;
+	}
+
+	/** Allow data-ebp attribute on <a> elements when saving post content. */
+	public function kses_allow_data_ebp( $allowed, $context ) {
+		if ( 'post' === $context && isset( $allowed['a'] ) ) {
+			$allowed['a']['data-ebp'] = true;
+		}
+		return $allowed;
+	}
+
+	/** Allow CSS custom properties used for hover effects in inline styles. */
+	public function safe_style_allow_ebp_vars( $allowed ) {
+		$allowed[] = '--ebp-hover-bg';
+		$allowed[] = '--ebp-hover-color';
+		$allowed[] = '--ebp-hover-grow';
+		return $allowed;
 	}
 
 	/** AJAX: search content (pages, posts, CPTs) by keyword. */
@@ -427,6 +468,7 @@ class EBP_Editor {
 										placeholder="<?php esc_attr_e( 'Suche (min. 2 Zeichen)…', 'eifelhoster-buttons-pro' ); ?>" />
 									<div id="ebp-dlg-content-results" style="margin-top:6px;max-height:160px;overflow-y:auto;border:1px solid #ddd;display:none"></div>
 									<input type="hidden" id="ebp-f-content-id" value="" />
+									<input type="hidden" id="ebp-f-content-permalink" value="" />
 									<div id="ebp-dlg-content-selected" style="margin-top:4px;font-size:12px;color:#555"></div>
 								</td>
 							</tr>

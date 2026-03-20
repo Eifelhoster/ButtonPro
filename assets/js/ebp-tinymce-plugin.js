@@ -18,17 +18,46 @@
 				if ( typeof window.ebpOpenDialog !== 'function' ) {
 					return;
 				}
-				// Pass edit-data when the cursor sits inside an existing shortcode.
-				var editData = ebpGetShortcodeAtCursor( editor );
-				window.ebpOpenDialog( editor, editData );
+
+				// 1. Check whether the cursor is inside an HTML button element (new style).
+				var buttonNode = ebpGetButtonAtCursor( editor );
+				if ( buttonNode ) {
+					window.ebpOpenDialog( editor, buttonNode );
+					return;
+				}
+
+				// 2. Fall back to shortcode detection (backward compatibility).
+				var scData = ebpGetShortcodeAtCursor( editor );
+				window.ebpOpenDialog( editor, scData );
 			}
 		} );
 	} );
 
 	/**
+	 * Walk up the DOM from the cursor position and return the nearest
+	 * <a class="ebp-button"> ancestor, or null if none is found.
+	 *
+	 * @param  {Object} editor  TinyMCE editor instance.
+	 * @return {Element|null}
+	 */
+	function ebpGetButtonAtCursor( editor ) {
+		var node = editor.selection.getStart();
+		while ( node && node.nodeName !== 'BODY' ) {
+			if ( node.nodeName === 'A' &&
+				( node.className || '' ).split( ' ' ).indexOf( 'ebp-button' ) !== -1 ) {
+				return node;
+			}
+			node = node.parentNode;
+		}
+		return null;
+	}
+
+	/**
 	 * Inspect the text node at the cursor position.
 	 * Returns { shortcode, node, start, end } when the cursor is inside an
 	 * [eifelhoster_button …] shortcode, or null otherwise.
+	 * Kept for backward compatibility with existing posts that still contain
+	 * the raw shortcode markup.
 	 *
 	 * @param  {Object} editor  TinyMCE editor instance.
 	 * @return {Object|null}

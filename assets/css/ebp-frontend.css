@@ -1,14 +1,20 @@
 /**
  * Eifelhoster Buttons Pro – Frontend CSS
  *
- * Contains only the structural/transitional styles that cannot be inlined.
- * All visual styles (colours, fonts, borders, etc.) are generated inline by
- * the shortcode renderer.
+ * Structural styles plus hover rules powered by CSS custom properties
+ * (--ebp-hover-bg, --ebp-hover-color, --ebp-hover-grow) that are set as
+ * inline styles on every HTML button element.  The shortcode renderer
+ * continues to generate a <style> block for its own hover rules; the CSS
+ * below is used by the new HTML-based buttons inserted via the Classic Editor.
  */
 
 .ebp-button {
 	box-sizing: border-box;
 }
 
-/* Smooth hover transitions are already set inline by the shortcode renderer
-   via the `transition` property, so no additional rules are required here. */
+/* Hover effects driven by per-button CSS custom properties. */
+.ebp-button:hover {
+	background-color: var(--ebp-hover-bg, inherit) !important;
+	color: var(--ebp-hover-color, inherit) !important;
+	transform: scale(var(--ebp-hover-grow, 1)) !important;
+}
