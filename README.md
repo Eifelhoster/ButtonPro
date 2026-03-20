@@ -1,6 +1,6 @@
 # Eifelhoster Buttons Pro
 
-**Version:** 3.7.0  
+**Version:** 4.3.0  
 **Autor:** Michael Krämer · [eifelhoster.de](https://eifelhoster.de)  
 **Lizenz:** GPL-2.0+
 
@@ -127,4 +127,4 @@ eifelhoster-buttons-pro/          ← Plugin-Verzeichnis
 
 ---
 
-*Eifelhoster Buttons Pro v3.0.0 – © 2024 Michael Krämer · eifelhoster.de*
+*Eifelhoster Buttons Pro v4.3.0 – © 2026 Michael Krämer · eifelhoster.de*
