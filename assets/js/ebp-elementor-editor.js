@@ -247,13 +247,20 @@
 
 		wp.media = patchedMedia;
 
-		// Restore the original wp.media on mouseup in case the click does not
-		// result in a wp.media() call (e.g. user releases mouse outside the button).
-		document.addEventListener( 'mouseup', function cleanup() {
-			if ( wp.media === patchedMedia ) {
-				wp.media = origMedia;
-			}
-			document.removeEventListener( 'mouseup', cleanup, true );
+		// Restore the original wp.media after the click event has been fully
+		// processed.  We must NOT use 'mouseup' for the cleanup because mouseup
+		// fires BEFORE 'click', meaning the patch would be removed before
+		// Elementor's click handler has a chance to call wp.media().
+		// Instead we listen to 'click' in capture phase (fires first) and
+		// schedule the restore via setTimeout so that it runs only after all
+		// synchronous click handlers – including Elementor's – have completed.
+		document.addEventListener( 'click', function cleanup() {
+			setTimeout( function () {
+				document.removeEventListener( 'click', cleanup, true );
+				if ( wp.media === patchedMedia ) {
+					wp.media = origMedia;
+				}
+			}, 0 );
 		}, true );
 	}, true ); // capture phase
 
