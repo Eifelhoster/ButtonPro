@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80">
+  <!-- Monitor/computer mascot -->
+  <rect x="4" y="10" width="52" height="40" rx="6" ry="6" fill="#8dbc2a" />
+  <rect x="10" y="15" width="40" height="28" rx="2" ry="2" fill="#fff" />
+  <!-- Smiley face on screen -->
+  <circle cx="22" cy="26" r="3" fill="#8dbc2a" />
+  <circle cx="38" cy="26" r="3" fill="#8dbc2a" />
+  <path d="M 20 33 Q 30 40 40 33" stroke="#8dbc2a" stroke-width="2.5" fill="none" stroke-linecap="round" />
+  <!-- Monitor stand -->
+  <rect x="24" y="50" width="10" height="7" fill="#8dbc2a" />
+  <rect x="16" y="57" width="26" height="4" rx="2" ry="2" fill="#8dbc2a" />
+  <!-- Brand text -->
+  <text x="64" y="38" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="bold" fill="#8dbc2a">eifelhoster.de</text>
+  <text x="64" y="58" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#666666">Deine Homepage in guten H&#228;nden</text>
+</svg>
