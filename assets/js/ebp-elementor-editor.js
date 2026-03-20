@@ -196,6 +196,14 @@
 	// so that all file types (images, PDFs, Office documents, etc.) are shown.
 	// Uses the capture phase of mousedown so we can patch wp.media() before
 	// Elementor's click handler fires and creates the media frame.
+	//
+	// Two Elementor APIs are handled:
+	//  (a) Simple: wp.media({ library: { type: [...] } })
+	//      → opts.library.type is deleted before the call.
+	//  (b) States-based (Elementor 3.x+):
+	//      wp.media.query({ type: [...] }) is called to build the library
+	//      before wp.media() is called.
+	//      → patchedMedia.query removes args.type before delegating.
 	// -------------------------------------------------------------------------
 	document.addEventListener( 'mousedown', function ( e ) {
 		var $target = $( e.target );
@@ -206,6 +214,7 @@
 			return;
 		}
 		var origMedia = wp.media;
+		var origQuery = typeof wp.media.query === 'function' ? wp.media.query : null;
 
 		function patchedMedia( options ) {
 			// Shallow-copy options and library to avoid mutating the original objects.
@@ -223,6 +232,18 @@
 		Object.keys( origMedia ).forEach( function ( key ) {
 			patchedMedia[ key ] = origMedia[ key ];
 		} );
+
+		// Override wp.media.query AFTER the property copy so it is not
+		// overwritten.  This handles the states-based Elementor API where
+		// Elementor calls wp.media.query({ type: [...] }) to build the
+		// attachment collection before passing it to wp.media().
+		if ( origQuery ) {
+			patchedMedia.query = function ( args ) {
+				var a = $.extend( {}, args || {} );
+				delete a.type;
+				return origQuery.call( this, a );
+			};
+		}
 
 		wp.media = patchedMedia;
 
