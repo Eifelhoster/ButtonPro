@@ -592,7 +592,7 @@ class EBP_Admin {
 				<p>
 					<a href="<?php echo esc_url( admin_url( 'options-general.php?page=buttonpro-docs' ) ); ?>"
 						class="button button-secondary ebp-docs-btn">
-						<span class="dashicons dashicons-book-alt" style="vertical-align:middle;margin-top:-2px"></span>
+						<span class="dashicons dashicons-book-alt"></span>
 						<?php esc_html_e( 'Dokumentation', 'eifelhoster-buttons-pro' ); ?>
 					</a>
 				</p>

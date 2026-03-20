@@ -363,6 +363,10 @@
 	align-items: center;
 	gap: 4px;
 }
+.ebp-docs-btn .dashicons {
+	vertical-align: middle;
+	margin-top: -2px;
+}
 
 /* ============================================================
    Documentation Page
