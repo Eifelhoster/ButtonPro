@@ -476,21 +476,35 @@ class EBP_Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'media_url',
 			array(
-				'label'     => __( 'Mediendatei URL', 'eifelhoster-buttons-pro' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => '',
+				'label'     => __( 'Mediendatei', 'eifelhoster-buttons-pro' ),
+				'type'      => Controls_Manager::MEDIA,
+				'default'   => array( 'url' => '' ),
 				'condition' => array( 'link_type' => 'media' ),
+			)
+		);
+
+		$this->add_control(
+			'content_search',
+			array(
+				'label'       => __( 'Inhalt suchen', 'eifelhoster-buttons-pro' ),
+				'type'        => Controls_Manager::TEXT,
+				'default'     => '',
+				'placeholder' => __( 'Titel eingeben…', 'eifelhoster-buttons-pro' ),
+				'description' => __( 'Mindestens 1 Zeichen eingeben, um Seiten, Beiträge und Custom Post Types zu suchen.', 'eifelhoster-buttons-pro' ),
+				'condition'   => array( 'link_type' => 'content' ),
+				'classes'     => 'ebp-elementor-content-search',
 			)
 		);
 
 		$this->add_control(
 			'content_id',
 			array(
-				'label'       => __( 'Inhalt (Post/Seite ID)', 'eifelhoster-buttons-pro' ),
-				'type'        => Controls_Manager::NUMBER,
+				'label'       => __( 'Ausgewählter Inhalt (ID)', 'eifelhoster-buttons-pro' ),
+				'type'        => Controls_Manager::TEXT,
 				'default'     => '',
-				'description' => __( 'ID einer Seite, eines Beitrags oder eines Custom Post Types', 'eifelhoster-buttons-pro' ),
+				'description' => __( 'Wird automatisch durch die Suche oben ausgefüllt.', 'eifelhoster-buttons-pro' ),
 				'condition'   => array( 'link_type' => 'content' ),
+				'classes'     => 'ebp-elementor-content-id',
 			)
 		);
 
@@ -549,7 +563,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 			'email'            => isset( $settings['email'] ) ? $settings['email'] : '',
 			'email_subject'    => isset( $settings['email_subject'] ) ? $settings['email_subject'] : '',
 			'email_body'       => isset( $settings['email_body'] ) ? $settings['email_body'] : '',
-			'media_url'        => isset( $settings['media_url'] ) ? $settings['media_url'] : '',
+			'media_url'        => ( isset( $settings['media_url']['url'] ) ) ? $settings['media_url']['url'] : '',
 			'content_id'       => isset( $settings['content_id'] ) ? (string) $settings['content_id'] : '',
 			'target'           => isset( $settings['target'] ) ? $settings['target'] : '_self',
 		);
