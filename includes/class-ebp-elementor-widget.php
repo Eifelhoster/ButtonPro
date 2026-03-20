@@ -229,9 +229,12 @@ class EBP_Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'icon',
 			array(
-				'label'     => __( 'Dashicon (Slug)', 'eifelhoster-buttons-pro' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => $d['icon'],
+				'label'     => __( 'Dashicon', 'eifelhoster-buttons-pro' ),
+				'type'      => Controls_Manager::ICONS,
+				'default'   => array(
+					'value'   => $d['icon'],
+					'library' => 'dashicons',
+				),
 				'condition' => array( 'icon_type' => 'dashicon' ),
 			)
 		);
@@ -239,9 +242,9 @@ class EBP_Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'icon_media_url',
 			array(
-				'label'     => __( 'Symbol-Bild URL', 'eifelhoster-buttons-pro' ),
-				'type'      => Controls_Manager::TEXT,
-				'default'   => $d['icon_media_url'],
+				'label'     => __( 'Symbol-Bild', 'eifelhoster-buttons-pro' ),
+				'type'      => Controls_Manager::MEDIA,
+				'default'   => array( 'url' => $d['icon_media_url'] ),
 				'condition' => array( 'icon_type' => 'media' ),
 			)
 		);
@@ -543,8 +546,8 @@ class EBP_Elementor_Widget extends Widget_Base {
 			'padding_v'        => isset( $settings['padding_v'] ) ? (string) $settings['padding_v'] : '10',
 			'padding_h'        => isset( $settings['padding_h'] ) ? (string) $settings['padding_h'] : '20',
 			'icon_type'        => isset( $settings['icon_type'] ) ? $settings['icon_type'] : 'none',
-			'icon'             => isset( $settings['icon'] ) ? $settings['icon'] : '',
-			'icon_media_url'   => isset( $settings['icon_media_url'] ) ? $settings['icon_media_url'] : '',
+			'icon'             => ( isset( $settings['icon']['value'] ) ) ? $settings['icon']['value'] : '',
+			'icon_media_url'   => ( isset( $settings['icon_media_url']['url'] ) ) ? $settings['icon_media_url']['url'] : '',
 			'icon_size'        => isset( $settings['icon_size'] ) ? (string) $settings['icon_size'] : '32',
 			'icon_spacing'     => isset( $settings['icon_spacing'] ) ? (string) $settings['icon_spacing'] : '24',
 			'icon_position'    => isset( $settings['icon_position'] ) ? $settings['icon_position'] : 'before',
