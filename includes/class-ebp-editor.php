@@ -465,6 +465,11 @@ class EBP_Editor {
 					<button type="button" id="ebp-btn-cancel" class="button">
 						<?php esc_html_e( 'Abbrechen', 'eifelhoster-buttons-pro' ); ?>
 					</button>
+					<a href="<?php echo esc_url( admin_url( 'options-general.php?page=buttonpro-docs' ) ); ?>"
+						class="button button-secondary ebp-docs-btn" target="_blank" rel="noopener">
+						<span class="dashicons dashicons-book-alt" style="vertical-align:middle;margin-top:-2px"></span>
+						<?php esc_html_e( 'Dokumentation', 'eifelhoster-buttons-pro' ); ?>
+					</a>
 					<span class="ebp-footer-credit">
 						Eifelhoster Buttons Pro v<?php echo esc_html( EBP_VERSION ); ?> –
 						<a href="https://eifelhoster.de" target="_blank" rel="noopener">eifelhoster.de</a>
