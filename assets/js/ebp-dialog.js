@@ -531,13 +531,15 @@
 		var rel    = target === '_blank' ? ' rel="noopener noreferrer"' : '';
 
 		// Icon HTML.  Icon slug is sanitized to alphanumeric + hyphens only.
+		// A zero-width non-joiner (U+200C) is added as text content so that
+		// TinyMCE does not strip the span as "empty" during its cleanup phase.
 		var iconHtml = '';
 		if ( attrs.icon_type === 'dashicon' && attrs.icon ) {
 			var safeIcon = String( attrs.icon ).replace( /[^a-z0-9\-]/g, '' );
 			var sz = parseInt( attrs.icon_size, 10 ) || 20;
 			iconHtml = '<span class="dashicons dashicons-' + safeIcon + '"'
 				+ ' style="font-size:' + sz + 'px;width:' + sz + 'px;height:' + sz + 'px;"'
-				+ ' aria-hidden="true"></span>';
+				+ ' aria-hidden="true">&#x200C;</span>';
 		} else if ( attrs.icon_type === 'media' && attrs.icon_media_url ) {
 			var sz2 = parseInt( attrs.icon_size, 10 ) || 20;
 			iconHtml = '<img src="' + ebpEscHtml( attrs.icon_media_url ) + '"'
