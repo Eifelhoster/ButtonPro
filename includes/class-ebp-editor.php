@@ -54,6 +54,8 @@ class EBP_Editor {
 			'ajaxurl'   => admin_url( 'admin-ajax.php' ),
 			'nonce'     => wp_create_nonce( 'ebp_search_content' ),
 			'i18n'      => array(
+				'editTitle'     => __( 'Eifelhoster Button bearbeiten', 'eifelhoster-buttons-pro' ),
+				'update'        => __( 'Button aktualisieren', 'eifelhoster-buttons-pro' ),
 				'title'         => __( 'Eifelhoster Button einfügen', 'eifelhoster-buttons-pro' ),
 				'insert'        => __( 'Button einfügen', 'eifelhoster-buttons-pro' ),
 				'cancel'        => __( 'Abbrechen', 'eifelhoster-buttons-pro' ),
@@ -465,11 +467,10 @@ class EBP_Editor {
 					<button type="button" id="ebp-btn-cancel" class="button">
 						<?php esc_html_e( 'Abbrechen', 'eifelhoster-buttons-pro' ); ?>
 					</button>
-					<a href="<?php echo esc_url( admin_url( 'options-general.php?page=buttonpro-docs' ) ); ?>"
-						class="button button-secondary ebp-docs-btn" target="_blank" rel="noopener">
+					<button type="button" id="ebp-btn-docs" class="button button-secondary ebp-docs-btn">
 						<span class="dashicons dashicons-book-alt" style="vertical-align:middle;margin-top:-2px"></span>
 						<?php esc_html_e( 'Dokumentation', 'eifelhoster-buttons-pro' ); ?>
-					</a>
+					</button>
 					<span class="ebp-footer-credit">
 						Eifelhoster Buttons Pro v<?php echo esc_html( EBP_VERSION ); ?> –
 						<a href="https://eifelhoster.de" target="_blank" rel="noopener">eifelhoster.de</a>
@@ -477,6 +478,28 @@ class EBP_Editor {
 				</div>
 			</div><!-- #ebp-modal -->
 		</div><!-- #ebp-modal-overlay -->
+
+		<!-- Eifelhoster Buttons Pro – Documentation Popup -->
+		<div id="ebp-docs-overlay" style="display:none;" aria-modal="true" role="dialog"
+			aria-label="<?php esc_attr_e( 'ButtonPro Dokumentation', 'eifelhoster-buttons-pro' ); ?>">
+			<div id="ebp-docs-modal">
+				<div id="ebp-docs-modal-header">
+					<span id="ebp-docs-modal-title">
+						<span class="dashicons dashicons-book-alt" style="margin-right:6px"></span>
+						<?php esc_html_e( 'ButtonPro – Dokumentation', 'eifelhoster-buttons-pro' ); ?>
+					</span>
+					<button type="button" id="ebp-docs-modal-close"
+						aria-label="<?php esc_attr_e( 'Schließen', 'eifelhoster-buttons-pro' ); ?>">
+						<span class="dashicons dashicons-no-alt"></span>
+					</button>
+				</div>
+				<div id="ebp-docs-modal-body">
+					<div class="ebp-docs-content">
+						<?php EBP_Admin::render_docs_content(); ?>
+					</div>
+				</div>
+			</div>
+		</div><!-- #ebp-docs-overlay -->
 		<?php
 	}
 }

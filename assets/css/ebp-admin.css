@@ -365,6 +365,71 @@
 }
 
 /* ============================================================
+   Documentation Popup (Classic Editor)
+   ============================================================ */
+
+#ebp-docs-overlay {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, .65);
+	z-index: 100001;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+#ebp-docs-modal {
+	background: #fff;
+	border-radius: 6px;
+	box-shadow: 0 8px 40px rgba(0, 0, 0, .4);
+	width: 760px;
+	max-width: 95vw;
+	max-height: 90vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+#ebp-docs-modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 14px 18px;
+	background: #2271b1;
+	color: #fff;
+	flex-shrink: 0;
+}
+#ebp-docs-modal-title {
+	font-size: 15px;
+	font-weight: 600;
+	display: flex;
+	align-items: center;
+}
+#ebp-docs-modal-close {
+	background: none;
+	border: none;
+	color: #fff;
+	cursor: pointer;
+	padding: 0;
+	line-height: 1;
+	opacity: .8;
+}
+#ebp-docs-modal-close:hover {
+	opacity: 1;
+}
+#ebp-docs-modal-close .dashicons {
+	font-size: 22px;
+	width: 22px;
+	height: 22px;
+}
+
+#ebp-docs-modal-body {
+	overflow-y: auto;
+	flex: 1;
+	padding: 0;
+}
+
+/* ============================================================
    Documentation Page
    ============================================================ */
 

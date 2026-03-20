@@ -1,7 +1,8 @@
 /**
  * Dialog UI for Eifelhoster Buttons Pro.
  *
- * Provides  window.ebpOpenDialog( editor )  which is called by the TinyMCE plugin.
+ * Provides  window.ebpOpenDialog( editor [, editData] )  which is called by the TinyMCE plugin.
+ * editData: { shortcode, node, start, end } – present when editing an existing shortcode.
  */
 /* global jQuery, ebpData, wp */
 (function ( $ ) {
@@ -11,12 +12,52 @@
 	var mediaFrameIcon  = null;
 	var mediaFrameLink  = null;
 
+	// Edit-mode state.
+	var isEditing = false;
+	var editNode  = null;
+	var editStart = 0;
+	var editEnd   = 0;
+
 	// -------------------------------------------------------------------------
 	// Public API
 	// -------------------------------------------------------------------------
-	window.ebpOpenDialog = function ( editor ) {
+	window.ebpOpenDialog = function ( editor, editData ) {
 		currentEditor = editor;
+		isEditing     = false;
+		editNode      = null;
+		editStart     = 0;
+		editEnd       = 0;
+
 		ebpResetForm();
+
+		if ( editData ) {
+			isEditing = true;
+			editNode  = editData.node;
+			editStart = editData.start;
+			editEnd   = editData.end;
+
+			var attrs = ebpParseShortcodeAttrs( editData.shortcode );
+			ebpPopulateForm( attrs );
+
+			$( '#ebp-modal-title' ).html(
+				'<span class="dashicons dashicons-edit" style="margin-right:6px"></span>' +
+				ebpData.i18n.editTitle
+			);
+			$( '#ebp-btn-insert' ).html(
+				'<span class="dashicons dashicons-yes" style="vertical-align:middle;margin-right:4px"></span>' +
+				ebpData.i18n.update
+			);
+		} else {
+			$( '#ebp-modal-title' ).html(
+				'<span class="dashicons dashicons-button" style="margin-right:6px"></span>' +
+				ebpData.i18n.title
+			);
+			$( '#ebp-btn-insert' ).html(
+				'<span class="dashicons dashicons-insert" style="vertical-align:middle;margin-right:4px"></span>' +
+				ebpData.i18n.insert
+			);
+		}
+
 		$( '#ebp-modal-overlay' ).fadeIn( 150 );
 		$( '#ebp-f-text' ).trigger( 'focus' );
 	};
@@ -61,13 +102,30 @@
 			}
 		} );
 		$( document ).on( 'keydown', function ( e ) {
-			if ( e.key === 'Escape' && $( '#ebp-modal-overlay' ).is( ':visible' ) ) {
-				ebpCloseDialog();
+			if ( e.key === 'Escape' ) {
+				if ( $( '#ebp-docs-overlay' ).is( ':visible' ) ) {
+					$( '#ebp-docs-overlay' ).fadeOut( 150 );
+				} else if ( $( '#ebp-modal-overlay' ).is( ':visible' ) ) {
+					ebpCloseDialog();
+				}
 			}
 		} );
 
 		// Insert button.
 		$( '#ebp-btn-insert' ).on( 'click', ebpInsertShortcode );
+
+		// Docs popup.
+		$( '#ebp-btn-docs' ).on( 'click', function () {
+			$( '#ebp-docs-overlay' ).fadeIn( 150 );
+		} );
+		$( '#ebp-docs-modal-close' ).on( 'click', function () {
+			$( '#ebp-docs-overlay' ).fadeOut( 150 );
+		} );
+		$( '#ebp-docs-overlay' ).on( 'click', function ( e ) {
+			if ( $( e.target ).is( '#ebp-docs-overlay' ) ) {
+				$( '#ebp-docs-overlay' ).fadeOut( 150 );
+			}
+		} );
 
 		// Icon type toggle.
 		$( document ).on( 'change', 'input[name="ebp-icon-type"]', function () {
@@ -315,10 +373,14 @@
 	function ebpCloseDialog() {
 		$( '#ebp-modal-overlay' ).fadeOut( 150 );
 		currentEditor = null;
+		isEditing     = false;
+		editNode      = null;
+		editStart     = 0;
+		editEnd       = 0;
 	}
 
 	// -------------------------------------------------------------------------
-	// Build shortcode and insert into editor
+	// Build shortcode and insert (or replace) in editor
 	// -------------------------------------------------------------------------
 	function ebpInsertShortcode() {
 		if ( ! currentEditor ) {
@@ -330,7 +392,17 @@
 			sc += ' ' + k + '="' + v.replace( /"/g, '&quot;' ) + '"';
 		} );
 		sc += ']';
-		currentEditor.insertContent( sc );
+
+		if ( isEditing && editNode ) {
+			// Select the existing shortcode text and replace it.
+			var rng = currentEditor.dom.createRng();
+			rng.setStart( editNode, editStart );
+			rng.setEnd(   editNode, editEnd   );
+			currentEditor.selection.setRng( rng );
+			currentEditor.selection.setContent( sc );
+		} else {
+			currentEditor.insertContent( sc );
+		}
 		ebpCloseDialog();
 	}
 
@@ -506,6 +578,104 @@
 		$( searchSel ).on( 'input', function () {
 			renderGrid( $( this ).val().toLowerCase() );
 		} );
+	}
+
+	// -------------------------------------------------------------------------
+	// Parse shortcode attribute string into a plain object
+	// -------------------------------------------------------------------------
+	function ebpParseShortcodeAttrs( shortcode ) {
+		var attrs = {};
+		var re    = /(\w+)="([^"]*)"/g;
+		var match;
+		while ( ( match = re.exec( shortcode ) ) !== null ) {
+			attrs[ match[1] ] = match[2].replace( /&quot;/g, '"' );
+		}
+		return attrs;
+	}
+
+	// -------------------------------------------------------------------------
+	// Populate dialog form from a parsed attributes object
+	// -------------------------------------------------------------------------
+	function ebpPopulateForm( attrs ) {
+		function v( key, fallback ) {
+			return ( attrs[ key ] !== undefined ) ? attrs[ key ] : fallback;
+		}
+
+		// Text & Font.
+		$( '#ebp-f-text' ).val( v( 'text', 'Button' ) );
+		$( '#ebp-f-font-family' ).val( v( 'font_family', '' ) );
+		$( '#ebp-f-font-size' ).val( v( 'font_size', '' ) );
+		$( '#ebp-f-font-bold' ).prop( 'checked', v( 'font_bold', '0' ) === '1' );
+		$( '#ebp-f-font-italic' ).prop( 'checked', v( 'font_italic', '0' ) === '1' );
+		$( '#ebp-f-padding-v' ).val( v( 'padding_v', '' ) );
+		$( '#ebp-f-padding-h' ).val( v( 'padding_h', '' ) );
+		$( '#ebp-f-button-width' ).val( v( 'button_width', '' ) );
+
+		// Colors.
+		if ( attrs.bg_color         !== undefined ) { ebpSetColor( '#ebp-f-bg-color',         attrs.bg_color         ); }
+		if ( attrs.bg_hover_color   !== undefined ) { ebpSetColor( '#ebp-f-bg-hover-color',   attrs.bg_hover_color   ); }
+		if ( attrs.text_color       !== undefined ) { ebpSetColor( '#ebp-f-text-color',       attrs.text_color       ); }
+		if ( attrs.text_hover_color !== undefined ) { ebpSetColor( '#ebp-f-text-hover-color', attrs.text_hover_color ); }
+		$( '#ebp-f-hover-grow' ).val( v( 'hover_grow', '' ) );
+		$( '#ebp-f-hover-grow-range' ).val( v( 'hover_grow', '' ) );
+
+		// Icon.
+		var iconType = v( 'icon_type', 'none' );
+		$( 'input[name="ebp-icon-type"][value="' + iconType + '"]' ).prop( 'checked', true );
+		$( '#ebp-dlg-row-dashicon' ).toggle( iconType === 'dashicon' );
+		$( '#ebp-dlg-row-media-icon' ).toggle( iconType === 'media' );
+		$( '#ebp-f-icon' ).val( v( 'icon', '' ) );
+		$( '#ebp-f-icon-media-url' ).val( v( 'icon_media_url', '' ) );
+		$( '#ebp-f-icon-size' ).val( v( 'icon_size', '' ) );
+		$( '#ebp-f-icon-spacing' ).val( v( 'icon_spacing', '' ) );
+		$( 'input[name="ebp-icon-pos"][value="' + v( 'icon_position', 'before' ) + '"]' ).prop( 'checked', true );
+
+		// Refresh icon preview.
+		if ( iconType === 'dashicon' && attrs.icon ) {
+			var sz = parseInt( attrs.icon_size, 10 ) || 20;
+			$( '#ebp-dlg-icon-preview' ).html(
+				'<span class="dashicons dashicons-' + ebpEscHtml( attrs.icon ) + '" ' +
+				'style="font-size:' + sz + 'px;width:' + sz + 'px;height:' + sz + 'px"></span>' +
+				' <span style="font-size:11px;color:#666">' + ebpEscHtml( attrs.icon ) + '</span>'
+			);
+			var selectedIcon = attrs.icon;
+			$( '#ebp-dlg-icon-grid .ebp-icon-item' ).removeClass( 'selected' ).filter( function () {
+				return $( this ).data( 'icon' ) === selectedIcon;
+			} ).addClass( 'selected' );
+		}
+		if ( iconType === 'media' && attrs.icon_media_url ) {
+			$( '#ebp-dlg-icon-media-preview' ).html(
+				'<img src="' + ebpEscHtml( attrs.icon_media_url ) + '" style="max-height:48px;margin-top:4px" />'
+			);
+		}
+
+		// Border & Shadow.
+		$( '#ebp-f-border-width' ).val( v( 'border_width', '' ) );
+		$( '#ebp-f-border-style' ).val( v( 'border_style', '' ) );
+		if ( attrs.border_color !== undefined ) { ebpSetColor( '#ebp-f-border-color', attrs.border_color ); }
+		$( '#ebp-f-border-radius' ).val( v( 'border_radius', '' ) );
+		var shadowEnabled = v( 'shadow_enabled', '0' ) === '1';
+		$( '#ebp-f-shadow-enabled' ).prop( 'checked', shadowEnabled );
+		$( '#ebp-dlg-shadow-fields' ).toggle( shadowEnabled );
+		$( '#ebp-f-shadow-x' ).val( v( 'shadow_x', '' ) );
+		$( '#ebp-f-shadow-y' ).val( v( 'shadow_y', '' ) );
+		$( '#ebp-f-shadow-blur' ).val( v( 'shadow_blur', '' ) );
+		$( '#ebp-f-shadow-spread' ).val( v( 'shadow_spread', '' ) );
+		if ( attrs.shadow_color !== undefined ) { ebpSetColor( '#ebp-f-shadow-color', attrs.shadow_color ); }
+
+		// Link.
+		var linkType = v( 'link_type', 'url' );
+		$( 'input[name="ebp-link-type"][value="' + linkType + '"]' ).prop( 'checked', true );
+		ebpToggleLinkFields( linkType );
+		$( '#ebp-f-url' ).val( v( 'url', '' ) );
+		$( '#ebp-f-email' ).val( v( 'email', '' ) );
+		$( '#ebp-f-email-subject' ).val( v( 'email_subject', '' ) );
+		$( '#ebp-f-email-body' ).val( v( 'email_body', '' ) );
+		$( '#ebp-f-media-url' ).val( v( 'media_url', '' ) );
+		$( '#ebp-f-content-id' ).val( v( 'content_id', '' ) );
+		$( 'input[name="ebp-target"][value="' + v( 'target', '_self' ) + '"]' ).prop( 'checked', true );
+
+		ebpUpdatePreview();
 	}
 
 }( jQuery ) );
