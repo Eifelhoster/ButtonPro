@@ -584,7 +584,7 @@ class EBP_Elementor_Widget extends Widget_Base {
 	}
 
 	protected function content_template() {
-		// Live preview in Elementor editor – simplified JS template.
+		// Live preview in Elementor editor – JS template.
 		?>
 		<#
 		var text        = settings.text || 'Button';
@@ -612,6 +612,18 @@ class EBP_Elementor_Widget extends Widget_Base {
 			: 'none';
 		var widthStyle  = buttonWidth > 0 ? buttonWidth + 'px' : '';
 
+		var iconType    = settings.icon_type || 'none';
+		var iconValue   = ( settings.icon && settings.icon.value ) ? settings.icon.value : '';
+		var iconSize    = parseInt( settings.icon_size, 10 ) || 20;
+		var iconSpacing = parseInt( settings.icon_spacing, 10 ) || 8;
+		var iconPos     = settings.icon_position || 'before';
+
+		var iconHtml = '';
+		if ( 'dashicon' === iconType && iconValue ) {
+			var iconSlug = iconValue.replace( /^dashicons-/, '' ).replace( /[^a-z0-9\-]/g, '' );
+			iconHtml = '<span class="dashicons dashicons-' + iconSlug + '" style="font-size:' + iconSize + 'px;width:' + iconSize + 'px;height:' + iconSize + 'px;" aria-hidden="true">&#x200C;</span>';
+		}
+
 		var styleStr = 'display:inline-flex;align-items:center;justify-content:center;'
 			+ 'text-decoration:none;cursor:pointer;'
 			+ 'font-family:' + fontFamily + ';'
@@ -626,9 +638,14 @@ class EBP_Elementor_Widget extends Widget_Base {
 			+ 'border-color:' + borderColor + ';'
 			+ 'border-radius:' + borderRadius + 'px;'
 			+ 'box-shadow:' + boxShadow + ';'
-			+ ( widthStyle ? 'width:' + widthStyle + ';' : '' );
+			+ ( widthStyle ? 'width:' + widthStyle + ';' : '' )
+			+ ( iconHtml ? 'gap:' + iconSpacing + 'px;' : '' );
 		#>
-		<a href="#" style="{{ styleStr }}">{{ text }}</a>
+		<a href="#" style="{{ styleStr }}">
+			<# if ( iconHtml && 'before' === iconPos ) { #>{{{ iconHtml }}}<# } #>
+			<span class="ebp-btn-text">{{ text }}</span>
+			<# if ( iconHtml && 'after' === iconPos ) { #>{{{ iconHtml }}}<# } #>
+		</a>
 		<?php
 	}
 }
