@@ -108,9 +108,12 @@ class EBP_Editor {
 		return $mce_css;
 	}
 
-	/** Allow all attributes on <a> in TinyMCE so data-ebp is not stripped. */
+	/** Allow all attributes on <a> and <span> in TinyMCE so data-ebp and dashicon spans are not stripped. */
 	public function mce_allow_data_ebp( $init ) {
-		$extra = 'a[*]';
+		// 'a[*]'    – preserve data-ebp and all other attributes on anchor tags.
+		// 'span[*]' – prevent TinyMCE from stripping the empty dashicons <span>
+		//             elements (icon font glyphs have no visible text content).
+		$extra = 'a[*],span[*]';
 		$init['extended_valid_elements'] = isset( $init['extended_valid_elements'] )
 			? $init['extended_valid_elements'] . ',' . $extra
 			: $extra;

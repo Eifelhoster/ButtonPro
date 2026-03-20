@@ -179,9 +179,16 @@ class EBP_Shortcode {
 		// ---- Build icon HTML ----
 		$icon_html = '';
 		if ( 'dashicon' === $a['icon_type'] && ! empty( $a['icon'] ) ) {
-			$sz        = absint( $a['icon_size'] );
-			$icon_html = '<span class="dashicons dashicons-' . esc_attr( $a['icon'] ) . '" '
-				. 'style="font-size:' . $sz . 'px;width:' . $sz . 'px;height:' . $sz . 'px;" aria-hidden="true"></span>';
+			$sz = absint( $a['icon_size'] );
+			// Normalise icon slug: Elementor's ICONS control stores the full class name
+			// (e.g. 'dashicons-heart') while the Classic-Editor dialog stores only the
+			// slug (e.g. 'heart').  Strip the leading 'dashicons-' prefix if present so
+			// both sources produce the correct CSS class 'dashicons dashicons-heart'.
+			// Restrict to alphanumeric + hyphens only (mirrors the JS sanitisation in
+			// ebp-dialog.js) before the value is embedded in a CSS class attribute.
+			$icon_slug = preg_replace( '/[^a-z0-9\-]/', '', preg_replace( '/^dashicons-/', '', strtolower( $a['icon'] ) ) );
+			$icon_html = '<span class="dashicons dashicons-' . esc_attr( $icon_slug ) . '" '
+				. 'style="font-size:' . $sz . 'px;width:' . $sz . 'px;height:' . $sz . 'px;" aria-hidden="true">&#x200C;</span>';
 		} elseif ( 'media' === $a['icon_type'] && ! empty( $a['icon_media_url'] ) ) {
 			$sz        = absint( $a['icon_size'] );
 			$icon_html = '<img src="' . esc_url( $a['icon_media_url'] ) . '" '
