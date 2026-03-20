@@ -56,6 +56,7 @@ class EBP_Editor {
 			'i18n'      => array(
 				'title'         => __( 'Eifelhoster Button einfügen', 'eifelhoster-buttons-pro' ),
 				'insert'        => __( 'Button einfügen', 'eifelhoster-buttons-pro' ),
+				'update'        => __( 'Button aktualisieren', 'eifelhoster-buttons-pro' ),
 				'cancel'        => __( 'Abbrechen', 'eifelhoster-buttons-pro' ),
 				'selectFile'    => __( 'Datei auswählen', 'eifelhoster-buttons-pro' ),
 				'selectMedia'   => __( 'Mediendatei auswählen', 'eifelhoster-buttons-pro' ),
@@ -466,8 +467,9 @@ class EBP_Editor {
 						<?php esc_html_e( 'Abbrechen', 'eifelhoster-buttons-pro' ); ?>
 					</button>
 					<span class="ebp-footer-credit">
-						Eifelhoster Buttons Pro v<?php echo esc_html( EBP_VERSION ); ?> –
+						Eifelhoster Buttons Pro v<?php echo esc_html( EBP_VERSION ); ?> &ndash;
 						<a href="https://eifelhoster.de" target="_blank" rel="noopener">eifelhoster.de</a>
+						&nbsp;&copy; 2026 Michael Krämer
 					</span>
 				</div>
 			</div><!-- #ebp-modal -->

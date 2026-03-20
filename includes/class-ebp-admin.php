@@ -588,6 +588,7 @@ class EBP_Admin {
 						esc_html( EBP_VERSION ),
 						'<a href="https://eifelhoster.de" target="_blank" rel="noopener">eifelhoster.de · Michael Krämer</a>'
 					); ?>
+					&nbsp;&nbsp;|&nbsp;&nbsp;&copy; 2026 Michael Krämer
 				</p>
 				<p>
 					<a href="<?php echo esc_url( admin_url( 'options-general.php?page=buttonpro-docs' ) ); ?>"
@@ -820,6 +821,7 @@ class EBP_Admin {
 						esc_html( EBP_VERSION ),
 						'<a href="https://eifelhoster.de" target="_blank" rel="noopener">eifelhoster.de · Michael Krämer</a>'
 					); ?>
+					&nbsp;&nbsp;|&nbsp;&nbsp;&copy; 2026 Michael Krämer
 				</p>
 			</div>
 

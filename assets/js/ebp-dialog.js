@@ -10,13 +10,38 @@
 	var currentEditor = null;
 	var mediaFrameIcon  = null;
 	var mediaFrameLink  = null;
+	var isEditing  = false;
+	var editRange  = null;
 
 	// -------------------------------------------------------------------------
 	// Public API
 	// -------------------------------------------------------------------------
-	window.ebpOpenDialog = function ( editor ) {
+	/**
+	 * Open the button dialog.
+	 *
+	 * @param {object}      editor        TinyMCE editor instance.
+	 * @param {object|null} shortcodeData { shortcode, range } when editing an
+	 *                                    existing button, or null for a new one.
+	 */
+	window.ebpOpenDialog = function ( editor, shortcodeData ) {
 		currentEditor = editor;
+		isEditing     = false;
+		editRange     = null;
+
 		ebpResetForm();
+
+		if ( shortcodeData && shortcodeData.shortcode ) {
+			var attrs = ebpParseShortcodeAttrs( shortcodeData.shortcode );
+			if ( attrs ) {
+				isEditing = true;
+				editRange = shortcodeData.range;
+				ebpPopulateForm( attrs );
+				$( '#ebp-btn-insert' ).text( ebpData.i18n.update || 'Button aktualisieren' );
+			}
+		} else {
+			$( '#ebp-btn-insert' ).text( ebpData.i18n.insert || 'Button einfügen' );
+		}
+
 		$( '#ebp-modal-overlay' ).fadeIn( 150 );
 		$( '#ebp-f-text' ).trigger( 'focus' );
 	};
@@ -289,6 +314,116 @@
 	}
 
 	// -------------------------------------------------------------------------
+	// Parse shortcode attributes from a [eifelhoster_button ...] string
+	// -------------------------------------------------------------------------
+	function ebpParseShortcodeAttrs( shortcode ) {
+		var attrs   = {};
+		// Match   key="value"  or  key='value'
+		var pattern = /(\w+)=["']([^"']*)["']/g;
+		var match;
+		while ( ( match = pattern.exec( shortcode ) ) !== null ) {
+			// Unescape &quot; that ebpInsertShortcode stored.
+			attrs[ match[1] ] = match[2].replace( /&quot;/g, '"' );
+		}
+		return attrs;
+	}
+
+	// -------------------------------------------------------------------------
+	// Populate form fields from a parsed attribute map (edit mode)
+	// -------------------------------------------------------------------------
+	function ebpPopulateForm( attrs ) {
+		function val( k, sel ) {
+			if ( attrs[ k ] !== undefined ) {
+				$( sel ).val( attrs[ k ] );
+			}
+		}
+		function chk( k, sel ) {
+			if ( attrs[ k ] !== undefined ) {
+				$( sel ).prop( 'checked', attrs[ k ] === '1' );
+			}
+		}
+		function rad( k, name ) {
+			if ( attrs[ k ] !== undefined ) {
+				$( 'input[name="' + name + '"][value="' + attrs[ k ] + '"]' ).prop( 'checked', true );
+			}
+		}
+		function clr( k, sel ) {
+			if ( attrs[ k ] !== undefined ) {
+				ebpSetColor( sel, attrs[ k ] );
+			}
+		}
+
+		// Text & Font.
+		val( 'text',         '#ebp-f-text' );
+		val( 'font_family',  '#ebp-f-font-family' );
+		val( 'font_size',    '#ebp-f-font-size' );
+		chk( 'font_bold',    '#ebp-f-font-bold' );
+		chk( 'font_italic',  '#ebp-f-font-italic' );
+		val( 'padding_v',    '#ebp-f-padding-v' );
+		val( 'padding_h',    '#ebp-f-padding-h' );
+		val( 'button_width', '#ebp-f-button-width' );
+
+		// Colors.
+		clr( 'bg_color',         '#ebp-f-bg-color' );
+		clr( 'bg_hover_color',   '#ebp-f-bg-hover-color' );
+		clr( 'text_color',       '#ebp-f-text-color' );
+		clr( 'text_hover_color', '#ebp-f-text-hover-color' );
+		if ( attrs.hover_grow !== undefined ) {
+			$( '#ebp-f-hover-grow' ).val( attrs.hover_grow );
+			$( '#ebp-f-hover-grow-range' ).val( attrs.hover_grow );
+		}
+
+		// Icon.
+		rad( 'icon_type', 'ebp-icon-type' );
+		var iconType = attrs.icon_type || 'none';
+		$( '#ebp-dlg-row-dashicon' ).toggle( iconType === 'dashicon' );
+		$( '#ebp-dlg-row-media-icon' ).toggle( iconType === 'media' );
+		val( 'icon',           '#ebp-f-icon' );
+		val( 'icon_media_url', '#ebp-f-icon-media-url' );
+		val( 'icon_size',      '#ebp-f-icon-size' );
+		val( 'icon_spacing',   '#ebp-f-icon-spacing' );
+		rad( 'icon_position', 'ebp-icon-pos' );
+
+		if ( iconType === 'dashicon' && attrs.icon ) {
+			$( '#ebp-dlg-icon-preview' ).html(
+				'<span class="dashicons dashicons-' + attrs.icon + '" style="font-size:24px;width:24px;height:24px"></span>' +
+				' <span style="font-size:11px;color:#666">' + attrs.icon + '</span>'
+			);
+		}
+		if ( iconType === 'media' && attrs.icon_media_url ) {
+			$( '#ebp-dlg-icon-media-preview' ).html(
+				'<img src="' + ebpEscHtml( attrs.icon_media_url ) + '" style="max-height:48px" />'
+			);
+		}
+
+		// Border & Shadow.
+		val( 'border_width',  '#ebp-f-border-width' );
+		val( 'border_style',  '#ebp-f-border-style' );
+		clr( 'border_color',  '#ebp-f-border-color' );
+		val( 'border_radius', '#ebp-f-border-radius' );
+		chk( 'shadow_enabled', '#ebp-f-shadow-enabled' );
+		$( '#ebp-dlg-shadow-fields' ).toggle( attrs.shadow_enabled === '1' );
+		val( 'shadow_x',      '#ebp-f-shadow-x' );
+		val( 'shadow_y',      '#ebp-f-shadow-y' );
+		val( 'shadow_blur',   '#ebp-f-shadow-blur' );
+		val( 'shadow_spread', '#ebp-f-shadow-spread' );
+		clr( 'shadow_color',  '#ebp-f-shadow-color' );
+
+		// Link.
+		rad( 'link_type', 'ebp-link-type' );
+		ebpToggleLinkFields( attrs.link_type || 'url' );
+		val( 'url',           '#ebp-f-url' );
+		val( 'email',         '#ebp-f-email' );
+		val( 'email_subject', '#ebp-f-email-subject' );
+		val( 'email_body',    '#ebp-f-email-body' );
+		val( 'media_url',     '#ebp-f-media-url' );
+		val( 'content_id',    '#ebp-f-content-id' );
+		rad( 'target', 'ebp-target' );
+
+		ebpUpdatePreview();
+	}
+
+	// -------------------------------------------------------------------------
 	// Helper: set WP colour picker value
 	// -------------------------------------------------------------------------
 	function ebpSetColor( selector, value ) {
@@ -318,7 +453,7 @@
 	}
 
 	// -------------------------------------------------------------------------
-	// Build shortcode and insert into editor
+	// Build shortcode and insert (or replace) in editor
 	// -------------------------------------------------------------------------
 	function ebpInsertShortcode() {
 		if ( ! currentEditor ) {
@@ -330,7 +465,14 @@
 			sc += ' ' + k + '="' + v.replace( /"/g, '&quot;' ) + '"';
 		} );
 		sc += ']';
-		currentEditor.insertContent( sc );
+
+		if ( isEditing && editRange ) {
+			// Replace the existing shortcode by selecting it first.
+			currentEditor.selection.setRng( editRange );
+			currentEditor.selection.setContent( sc );
+		} else {
+			currentEditor.insertContent( sc );
+		}
 		ebpCloseDialog();
 	}
 
