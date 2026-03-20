@@ -342,21 +342,6 @@
 	margin: 0;
 }
 
-/* ============================================================
-   Logo Upload Section (Settings Page)
-   ============================================================ */
-
-.ebp-logo-upload-section {
-	margin-top: 24px;
-	padding: 20px;
-	background: #fff;
-	border: 1px solid #c3c4c7;
-	border-radius: 4px;
-}
-.ebp-logo-upload-section h2 {
-	margin-top: 0;
-}
-
 /* Documentation button in footer */
 .ebp-docs-btn {
 	display: inline-flex;
@@ -450,16 +435,9 @@
 }
 .ebp-docs-logo {
 	max-height: 100px;
-	max-width: 300px;
+	max-width: 320px;
 	display: block;
-}
-.ebp-docs-no-logo {
-	background: #f0f0f1;
-	border-left: 4px solid #a7aaad;
-	padding: 10px 14px;
-	margin: 0;
-	color: #646970;
-	font-style: italic;
+	margin-bottom: 12px;
 }
 
 .ebp-docs-content {

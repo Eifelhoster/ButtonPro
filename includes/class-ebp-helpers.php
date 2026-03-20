@@ -50,7 +50,6 @@ function ebp_get_defaults() {
 		'media_url'        => '',
 		'content_id'       => '',
 		'target'           => '_self',
-		'logo_url'         => '',
 	);
 
 	$saved = get_option( EBP_OPTION_KEY, array() );
