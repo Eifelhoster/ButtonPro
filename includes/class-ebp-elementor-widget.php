@@ -479,10 +479,11 @@ class EBP_Elementor_Widget extends Widget_Base {
 		$this->add_control(
 			'media_url',
 			array(
-				'label'     => __( 'Mediendatei', 'eifelhoster-buttons-pro' ),
-				'type'      => Controls_Manager::MEDIA,
-				'default'   => array( 'url' => '' ),
-				'condition' => array( 'link_type' => 'media' ),
+				'label'       => __( 'Mediendatei', 'eifelhoster-buttons-pro' ),
+				'type'        => Controls_Manager::MEDIA,
+				'media_types' => array( 'image', 'video', 'audio', 'application' ),
+				'default'     => array( 'url' => '' ),
+				'condition'   => array( 'link_type' => 'media' ),
 			)
 		);
 

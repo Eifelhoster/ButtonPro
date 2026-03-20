@@ -25,6 +25,9 @@ class EBP_Editor {
 		add_filter( 'tiny_mce_before_init', array( $this, 'mce_allow_data_ebp' ) );
 		add_filter( 'wp_kses_allowed_html', array( $this, 'kses_allow_data_ebp' ), 10, 2 );
 		add_filter( 'safe_style_css',       array( $this, 'safe_style_allow_ebp_vars' ) );
+
+		// Media library: non-admin users see only their own files; admins see all.
+		add_filter( 'ajax_query_attachments_args', array( $this, 'filter_media_library' ) );
 	}
 
 	/** Only enqueue on post / page editing screens. */
@@ -128,6 +131,23 @@ class EBP_Editor {
 		$allowed[] = '--ebp-hover-color';
 		$allowed[] = '--ebp-hover-grow';
 		return $allowed;
+	}
+
+	/**
+	 * Restrict the media library to the current user's own uploads for
+	 * non-administrator roles; administrators always see all files.
+	 * Applies to both the Classic Editor and the Elementor widget pickers
+	 * because both use the same WP media AJAX endpoint.
+	 *
+	 * `manage_options` is the standard WordPress capability that identifies
+	 * administrator-level access and correctly covers custom roles that have
+	 * been explicitly granted admin rights via plugins or code.
+	 */
+	public function filter_media_library( $query ) {
+		if ( ! current_user_can( 'manage_options' ) ) {
+			$query['author'] = get_current_user_id();
+		}
+		return $query;
 	}
 
 	/** AJAX: search content (pages, posts, CPTs) by keyword. */

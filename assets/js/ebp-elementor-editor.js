@@ -191,4 +191,49 @@
 	// its init event before our script is loaded).
 	$( document ).ready( init );
 
+	// -------------------------------------------------------------------------
+	// Remove file-type restriction from the media_url control's media picker
+	// so that all file types (images, PDFs, Office documents, etc.) are shown.
+	// Uses the capture phase of mousedown so we can patch wp.media() before
+	// Elementor's click handler fires and creates the media frame.
+	// -------------------------------------------------------------------------
+	document.addEventListener( 'mousedown', function ( e ) {
+		var $target = $( e.target );
+		if ( ! $target.closest( '.elementor-control-media_url' ).length ) {
+			return;
+		}
+		if ( typeof wp === 'undefined' || typeof wp.media !== 'function' ) {
+			return;
+		}
+		var origMedia = wp.media;
+
+		function patchedMedia( options ) {
+			// Shallow-copy options and library to avoid mutating the original objects.
+			var opts = options ? $.extend( {}, options ) : {};
+			if ( opts.library ) {
+				opts.library = $.extend( {}, opts.library );
+				delete opts.library.type;
+			}
+			// Restore before calling the original so nested calls are unaffected.
+			wp.media = origMedia;
+			return origMedia.call( this, opts );
+		}
+
+		// Copy all static properties (wp.media.model, wp.media.view, etc.).
+		Object.keys( origMedia ).forEach( function ( key ) {
+			patchedMedia[ key ] = origMedia[ key ];
+		} );
+
+		wp.media = patchedMedia;
+
+		// Restore the original wp.media on mouseup in case the click does not
+		// result in a wp.media() call (e.g. user releases mouse outside the button).
+		document.addEventListener( 'mouseup', function cleanup() {
+			if ( wp.media === patchedMedia ) {
+				wp.media = origMedia;
+			}
+			document.removeEventListener( 'mouseup', cleanup, true );
+		}, true );
+	}, true ); // capture phase
+
 } )( jQuery );
